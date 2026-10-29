@@ -91,3 +91,10 @@ This report tracks verified milestones. It does not claim full e-commerce accept
 - Against the disposable local PostgreSQL 16 instance, verified appointment creation (201), exact retry replay (200 with same record ID), changed-payload key conflict (409), custom-order creation (201), and reuse after the 24-hour idempotency window (201 with a new record). Deleted the disposable test rows and idempotency records after verification.
 - `npm test -- --maxWorkers=1 --minWorkers=1`: 14/14 passed. `npm run build`: passed (upstream Zod annotation and bundle-size warnings only). `go test -count=1 ./...`, `go vet ./...`, and `git diff --check` passed.
 - Remaining work: staff-facing appointment/custom-request review and notification delivery are not implemented; no email provider is configured. Pexels clip preview plays on its source page, but playback from the local storefront itself still needs a target-browser network check. Payment, R2, admin, PWA, Android, monitoring, and cloud deployment remain unimplemented.
+
+## Saree hero video replacement — verified locally
+
+- Replaced the prior generic traditional-attire footage with Pexels video 7684805. Its listing describes a colorful saree twirl, and the source preview shows the model and drape full length. The media URL was confirmed from Pexels' own download page; the homepage's local browser preview loaded and played it.
+- Changed the video from contain to cover so its full vertical frame fills the hero instead of leaving large empty bands. Kept the existing still-image poster fallback and documented the source and license in `docs/media-attributions.md`.
+- `npm test -- --maxWorkers=1 --minWorkers=1`: 14/14 passed. `npm run build`: passed; only existing Zod annotation and bundle-size warnings.
+- Remaining: confirm final aesthetic preference on the target browser/device; this change does not alter payment, admin, PWA, Android, monitoring, or deployment scope.

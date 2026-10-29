@@ -1,5 +1,5 @@
 .hero-image.hero-video {
-  object-fit: contain;
+  object-fit: cover;
   object-position: center;
   background-color: #cdb89f;
   filter: saturate(0.92);
