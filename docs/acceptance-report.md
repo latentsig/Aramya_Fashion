@@ -73,3 +73,12 @@ This report tracks verified milestones. It does not claim full e-commerce accept
 - `npm test`: 11/11 tests passed. `npm run build`: passed (Vite reports non-failing upstream Zod pure-annotation warnings). `go test -count=1 ./...` and `go vet ./...` passed. `git diff --check` passed.
 - The preview at `http://localhost:8000/` serves the updated React source and proxies API traffic to the local Go API. Restarting the stale Vite process removed the browser’s earlier “bag could not be updated” toast; the refreshed page now loads cleanly.
 - Remaining verification: confirm external Pexels playback on the target browser/network and complete owner-versus-other-customer order integration coverage. Razorpay, R2, admin, PWA, Android, monitoring, and cloud deployment remain unimplemented.
+
+## Product details and selected-variant add-to-bag — verified locally, current branch
+
+- Added a React Router `/products/:slug` page and linked live collection cards to it. Product details load from PostgreSQL-backed API data, including the primary image plus any gallery records, actual active variant labels, variant price adjustments, and tracked-stock availability.
+- Catalog currently contains one `Made to measure` variant per style and no recorded stock quantities. The detail page shows that real option instead of inventing sizes or stock; order price remains server-calculated by the cart API.
+- Changed `GET /api/v1/products/:slug` to include variants and images and documented the `ProductDetail` response in OpenAPI. For catalog entries without separate gallery rows, the persisted product image key is used as the single image.
+- Verified against the running PostgreSQL-backed API and browser preview: `/products/the-heirloom-saree` showed the actual name, ₹8,900 catalog price, primary image, `Fit: Made to measure`, and an enabled Add to bag action.
+- The product page test exercises the actual component with a live-style API response and asserts the selected variant UUID is submitted through the CSRF-protected cart request. `npm test`: 12/12 passed; `npm run build`, `go test -count=1 ./...`, and `go vet ./...` passed.
+- Remaining work: richer descriptions and multiple product gallery media depend on catalog content being entered; size/stock variants must only be introduced with operator-supplied catalog and inventory data.

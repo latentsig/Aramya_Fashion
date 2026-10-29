@@ -4,7 +4,7 @@ import type { Product } from '../products/catalog';
 type CartLine = { id: string; variantId: string; product: Product; quantity: number };
 type CartValue = {
   lines: CartLine[];
-  add: (product: Product) => Promise<void>;
+  add: (product: Product) => Promise<boolean>;
   setQuantity: (variantId: string, quantity: number) => Promise<void>;
   remove: (variantId: string) => Promise<void>;
   refresh: () => Promise<void>;
@@ -80,8 +80,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const apply = async (operation: () => Promise<CartPayload>) => {
     setError(null);
-    try { setSnapshot(await operation()); }
-    catch (cause) { setError(cause instanceof Error ? cause.message : 'Your bag could not be updated.'); }
+    try { setSnapshot(await operation()); return true; }
+    catch (cause) { setError(cause instanceof Error ? cause.message : 'Your bag could not be updated.'); return false; }
   };
 
   const lines = useMemo<CartLine[]>(() => snapshot.lines.map((line) => ({
@@ -106,16 +106,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
     subtotal: snapshot.subtotalPaise / 100,
     loading,
     error,
-    add: (product) => product.variantId
+    add: async (product) => product.variantId
       ? apply(() => requestCart('/items', { method: 'POST', body: JSON.stringify({ variantId: product.variantId, quantity: 1 }) }))
-      : Promise.resolve(setError('Connect the live catalog to add this style to your bag.')),
-    setQuantity: (variantId, quantity) => {
+      : (setError('Connect the live catalog to add this style to your bag.'), false),
+    setQuantity: async (variantId, quantity) => {
       const line = snapshot.lines.find((item) => item.variantId === variantId);
-      return line ? apply(() => requestCart(`/items/${line.id}`, { method: 'PATCH', body: JSON.stringify({ quantity }) })) : Promise.resolve();
+      if (line) await apply(() => requestCart(`/items/${line.id}`, { method: 'PATCH', body: JSON.stringify({ quantity }) }));
     },
-    remove: (variantId) => {
+    remove: async (variantId) => {
       const line = snapshot.lines.find((item) => item.variantId === variantId);
-      return line ? apply(() => requestCart(`/items/${line.id}`, { method: 'DELETE' })) : Promise.resolve();
+      if (line) await apply(() => requestCart(`/items/${line.id}`, { method: 'DELETE' }));
     },
     refresh,
   }), [lines, snapshot, loading, error, refresh]);

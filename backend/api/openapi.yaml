@@ -353,7 +353,7 @@ paths:
                 required: [data]
                 properties:
                   data:
-                    $ref: '#/components/schemas/Product'
+                    $ref: '#/components/schemas/ProductDetail'
         '404':
           description: Product not found
 components:
@@ -406,6 +406,35 @@ components:
         imageKey: { type: string }
         status: { type: string }
         inventoryPolicy: { type: string }
+    ProductVariant:
+      type: object
+      required: [id, sku, optionName, optionValue, priceAdjustmentPaise, isDefault, available]
+      properties:
+        id: { type: string, format: uuid }
+        sku: { type: string }
+        optionName: { type: string }
+        optionValue: { type: string }
+        priceAdjustmentPaise: { type: integer }
+        isDefault: { type: boolean }
+        available: { type: boolean }
+    ProductImage:
+      type: object
+      required: [imageKey, altText]
+      properties:
+        imageKey: { type: string }
+        altText: { type: string }
+    ProductDetail:
+      allOf:
+        - $ref: '#/components/schemas/Product'
+        - type: object
+          required: [variants, images]
+          properties:
+            variants:
+              type: array
+              items: { $ref: '#/components/schemas/ProductVariant' }
+            images:
+              type: array
+              items: { $ref: '#/components/schemas/ProductImage' }
     OrderSummary:
       type: object
       required: [id, orderNumber, status, currency, subtotalPaise, taxPaise, shippingPaise, discountPaise, totalPaise, createdAt]
