@@ -64,7 +64,7 @@ export const products: Product[] = [
 ];
 
 export function imageUrl(fileName: string): string {
-  return `/${encodeURIComponent(fileName)}`;
+  return `/media/${encodeURIComponent(fileName)}`;
 }
 
 export function formatPrice(priceRupees: number): string {
