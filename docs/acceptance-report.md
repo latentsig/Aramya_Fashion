@@ -106,4 +106,20 @@ This report tracks verified milestones. It does not claim full e-commerce accept
 - Added `go run ./cmd/seed-admin` as explicit development setup. It reads a process-scoped password input, uses Argon2id, creates a new administrator in one transaction, and refuses to elevate an existing customer. Setup steps and request transition rules are documented in `docs/admin-studio-workflow.md`.
 - Disposable PostgreSQL 16 / Go API verification passed: admin queue reads, appointment confirmation, stale-write 409, custom-order review and quotation, transition to `awaiting_approval`, admin approval-bypass rejection, and four persisted actor-attributed audit events. Temporary test user, requests, idempotency rows, and audit entries were cleaned up.
 - Frontend admin queue tests passed 3/3 as part of the 17-test suite. Go transition-matrix, route authorization/validation, and seed-admin input tests were added; full Go and production-build results are recorded after the final verification run.
-- Remaining: broader product/order/inventory/media administration, customer-side quotation approval, notifications, R2, Razorpay, PWA, Android, monitoring, and GCP deployment are not implemented.
+- Remaining at that milestone: broader product/order/inventory/media administration, customer-side quotation approval, notifications, R2, Razorpay, PWA, Android, monitoring, and GCP deployment were not implemented. Inventory management is covered in the verification entry below.
+
+## Admin inventory management — tested locally
+
+- Added `/admin/inventory` and role-gated `GET /api/v1/admin/inventory` with product/category/parent SKU/variant SKU/option search and bounded pagination. The screen shows the inventory policy and on-hand, reserved, and available counts for each variant.
+- Added `PATCH /api/v1/admin/inventory/{variantID}` for tracked variants. Operators provide a current expected count, target count, and reason. The repository locks the variant, rejects stale edits and changes below reservations, and writes the inventory movement and audit record in the same transaction. Made-to-order and untracked variants are visible but read-only.
+- PostgreSQL 16 integration test passed against the local migrated database: verified parent SKU search, persisted quantity changes, reserved-stock rejection, stale-write conflict, concurrent update serialization (one success and one conflict), exactly two movement/audit rows, and cleanup of temporary product data.
+- `go test -count=1 ./...`, `go vet ./...`, frontend tests (19/19), and `npm run build` passed. OpenAPI YAML/reference validation passed. Build emitted upstream Zod annotation and existing large-chunk warnings.
+- Remaining: product/category editing, order review and fulfillment, media uploads to R2, customer quotation approval, email notifications, Razorpay, PWA, Android, monitoring, and GCP deployment.
+
+## Admin inventory management — implementation and verification in progress
+
+- Added an admin role-gated inventory list for product variants, including on-hand, reserved, and available quantities with search and pagination.
+- Added an optimistic stock correction for tracked variants only. A transaction locks the variant, rejects stale counts and reductions below reservations, then records a movement and audit entry atomically.
+- Added a responsive staff inventory page and documented the endpoint in OpenAPI.
+- Automated tests and live PostgreSQL checks are part of this milestone's final verification; results will be recorded after execution.
+- Remaining: product/category editing, media uploads, order review and fulfillment, and full production e-commerce acceptance.

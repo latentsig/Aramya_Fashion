@@ -20,6 +20,61 @@ paths:
           description: Database is reachable
         '503':
           description: Database is unavailable
+  /api/v1/admin/inventory:
+    get:
+      summary: List product variant inventory for administrators
+      description: Includes tracked, made-to-order, and untracked variants. Only tracked variants can be adjusted.
+      security:
+        - sessionCookie: []
+      parameters:
+        - { in: query, name: search, schema: { type: string, maxLength: 100 } }
+        - { in: query, name: limit, schema: { type: integer, minimum: 1, maximum: 50, default: 20 } }
+        - { in: query, name: offset, schema: { type: integer, minimum: 0, maximum: 100000, default: 0 } }
+      responses:
+        '200':
+          description: Inventory variants and current reserved quantities
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, pagination]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/AdminInventoryItem' }
+                  pagination: { $ref: '#/components/schemas/Pagination' }
+        '401': { description: Administrator session is required }
+        '403': { description: Session does not have the admin role }
+  /api/v1/admin/inventory/{variantID}:
+    patch:
+      summary: Set the on-hand quantity for a tracked variant
+      description: Uses expectedOnHand for optimistic concurrency; changes below reserved stock are rejected. The adjustment ledger and audit log are written atomically.
+      security:
+        - sessionCookie: []
+          csrfToken: []
+          csrfCookie: []
+      parameters:
+        - { in: path, name: variantID, required: true, schema: { type: string, format: uuid } }
+        - { in: header, name: X-CSRF-Token, required: true, schema: { type: string } }
+        - { in: cookie, name: aramya_csrf, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [expectedOnHand, onHand, reason]
+              properties:
+                expectedOnHand: { type: integer, minimum: 0, maximum: 1000000 }
+                onHand: { type: integer, minimum: 0, maximum: 1000000 }
+                reason: { type: string, minLength: 3, maxLength: 500 }
+      responses:
+        '200': { description: Inventory updated with a ledger movement and audit entry }
+        '400': { description: Invalid quantity, reason, or inventory policy }
+        '401': { description: Administrator session is required }
+        '403': { description: Admin role or CSRF validation failed }
+        '404': { description: Product variant was not found }
+        '409': { description: On-hand value is stale or would fall below reserved stock }
   /api/v1/admin/appointments:
     get:
       summary: List appointments for administrators
@@ -670,6 +725,25 @@ components:
         currency: { type: string, minLength: 3, maxLength: 3 }
         status: { type: string, enum: [requested, reviewing, fitting, quoted, awaiting_approval, approved, in_progress, completed, declined, cancelled] }
         createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    AdminInventoryItem:
+      type: object
+      required: [variantId, productId, sku, productName, productSlug, categoryName, optionName, optionValue, pricePaise, inventoryPolicy, active, onHand, reserved, available, updatedAt]
+      properties:
+        variantId: { type: string, format: uuid }
+        productId: { type: string, format: uuid }
+        sku: { type: string }
+        productName: { type: string }
+        productSlug: { type: string }
+        categoryName: { type: string }
+        optionName: { type: string }
+        optionValue: { type: string }
+        pricePaise: { type: integer, minimum: 0 }
+        inventoryPolicy: { type: string, enum: [tracked, made_to_order, untracked] }
+        active: { type: boolean }
+        onHand: { type: integer, minimum: 0 }
+        reserved: { type: integer, minimum: 0 }
+        available: { type: integer }
         updatedAt: { type: string, format: date-time }
     OrderSummary:
       type: object

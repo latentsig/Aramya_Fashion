@@ -39,7 +39,7 @@ The cart API is available under `/api/v1/cart`. A first `GET` creates a guest ca
 
 ### Studio administration
 
-The `/admin/appointments` and `/admin/custom-orders` staff screens read and update PostgreSQL-backed studio requests. To create a first development administrator, use the hidden password-prompt procedure in [admin-studio-workflow.md](admin-studio-workflow.md). Never promote a customer from browser code or expose an admin password in shell history. Appointment and custom-request transitions are audited; a custom quotation remains pending customer approval and does not create an order or payment.
+The `/admin/appointments`, `/admin/custom-orders`, and `/admin/inventory` staff screens read and update PostgreSQL-backed studio requests and variant stock. To create a first development administrator, use the hidden password-prompt procedure in [admin-studio-workflow.md](admin-studio-workflow.md). Never promote a customer from browser code or expose an admin password in shell history. Appointment and custom-request transitions are audited; a custom quotation remains pending customer approval and does not create an order or payment. Inventory corrections require an expected current quantity and a reason, cannot reduce stock below active reservations, and write the inventory ledger and audit event transactionally.
 
 Checkout exposes `POST /api/v1/checkout/quote` and idempotent `POST /api/v1/checkout/orders`. The order endpoint snapshots current product and variant data in a PostgreSQL transaction, records the initial `pending_payment` event, and clears the cart. Until shipping/tax policy and Razorpay test credentials are configured, the quote is marked provisional, payment is explicitly unavailable, and the storefront only saves a pending order request—it does not claim a payment or reserve inventory.
 
@@ -47,4 +47,4 @@ Migrations are applied in lexical order and recorded in `schema_migrations`. For
 
 ## Current limitations
 
-The storefront provides `/login`, `/register`, and `/account` using the session API. Password reset/email verification and Google sign-in are not implemented. Payment initiation/verification, cancellations/refunds, R2, product/order/inventory/media admin, appointment notifications, customer quotation approval, PWA, and Android setup remain outstanding. Razorpay credentials are not needed or used by the local pending-order flow. Never use live payment credentials for development.
+The storefront provides `/login`, `/register`, and `/account` using the session API. Password reset/email verification and Google sign-in are not implemented. Payment initiation/verification, cancellations/refunds, R2, product/category/order/media admin, appointment notifications, customer quotation approval, PWA, and Android setup remain outstanding. Razorpay credentials are not needed or used by the local pending-order flow. Never use live payment credentials for development.

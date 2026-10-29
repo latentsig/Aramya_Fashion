@@ -10,6 +10,7 @@ import { AccountOrdersPage, OrderDetailPage } from './OrdersPages';
 import { ProductPage } from './ProductPage';
 import { StudioRequestDialog } from '../components/appointments/StudioRequestDialog';
 import { AdminStudioPage } from '../features/admin/AdminStudioPage';
+import { AdminInventoryPage } from '../features/admin/AdminInventoryPage';
 
 export default function App() {
   return (
@@ -30,6 +31,7 @@ export default function App() {
         <Route path="/account/orders/:id" element={<OrderDetailPage />} />
         <Route path="/admin/appointments" element={<AdminStudioPage />} />
         <Route path="/admin/custom-orders" element={<AdminStudioPage />} />
+        <Route path="/admin/inventory" element={<AdminInventoryPage />} />
         <Route path="*" element={<main className="section-pad"><h1>Page not found</h1></main>} />
       </Routes>
       <SiteFooter />

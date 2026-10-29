@@ -44,5 +44,15 @@ Audit entries record the actor, request ID, entity ID, action, and from/to state
 - `PATCH /api/v1/admin/appointments/{id}`
 - `GET /api/v1/admin/custom-order-requests`
 - `PATCH /api/v1/admin/custom-order-requests/{id}`
+- `GET /api/v1/admin/inventory`
+- `PATCH /api/v1/admin/inventory/{variantID}`
 
 The OpenAPI file describes role, CSRF, filters, request bodies, and conflict responses.
+
+## Inventory review
+
+The inventory list returns every product variant and its policy with on-hand, reserved, and available quantities. Search accepts product, category, SKU, or option value. Listing does not seed stock or infer historical quantities.
+
+The inventory update sets an operator-confirmed on-hand quantity for tracked variants. The request includes the quantity last seen (`expectedOnHand`) and a short adjustment reason. It rejects stale values and any quantity below stock reserved for open orders. Variant locking also serializes first-time inventory creation. A successful update, `inventory_movements` adjustment, and `audit_logs` event commit together. Repeating an unchanged target creates no duplicate movement.
+
+Made-to-order and untracked variants remain visible but cannot be stock-adjusted through this endpoint. Product and variant editing and order fulfillment administration remain separate work.

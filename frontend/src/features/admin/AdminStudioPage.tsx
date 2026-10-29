@@ -138,6 +138,7 @@ export function AdminStudioPage() {
       <nav className="admin-studio-tabs" aria-label="Studio request queues">
         <Link aria-current={kind === 'appointments' ? 'page' : undefined} to="/admin/appointments">Appointments</Link>
         <Link aria-current={kind === 'custom-orders' ? 'page' : undefined} to="/admin/custom-orders">Made to order</Link>
+        <Link to="/admin/inventory">Inventory</Link>
       </nav>
       <form className="admin-studio-filters" onSubmit={applySearch}>
         <label>Status<select aria-label="Filter by status" value={activeStatus} onChange={(event) => { setStatus(event.target.value); setOffset(0); }}><option value="">All statuses</option>{filters.map((item) => <option key={item} value={item}>{labels[item]}</option>)}</select></label>
