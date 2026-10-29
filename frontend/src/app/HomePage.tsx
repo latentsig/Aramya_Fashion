@@ -6,7 +6,7 @@ export function HomePage() {
     <main id="top">
       <section className="hero">
         <div className="hero-copy"><p className="eyebrow">ARAMYA · BY SHUBHA BHARAT</p><h1>Wear the<br /><em>moment.</em></h1><p className="hero-intro">Indian occasionwear, imagined with intention and made to feel entirely your own.</p><a className="button button-light" href="#collections">Explore the collection <span>↘</span></a><div className="hero-index"><span>01</span><span className="index-rule" /><span>CRAFTED FOR YOU</span></div></div>
-        <div className="hero-image-wrap"><video className="hero-image hero-video" autoPlay muted loop playsInline preload="metadata" poster={imageUrl('lehanga2.jpg')} aria-label="A model turning to show the full length of traditional Indian attire"><source src="https://videos.pexels.com/video-files/36591890/15514389_1080_1920_100fps.mp4" type="video/mp4" /></video><div className="image-note">A little wonder<br />in every detail.</div></div>
+        <div className="hero-image-wrap"><video className="hero-image hero-video" autoPlay muted loop playsInline preload="metadata" poster={imageUrl('lehanga2.jpg')} aria-label="A woman twirling in a colorful Indian saree"><source src="https://videos.pexels.com/video-files/7684805/7684805-hd_1920_1080_30fps.mp4" type="video/mp4" /></video><div className="image-note">A little wonder<br />in every detail.</div></div>
         <a className="hero-side-label" href="#story">OCCASIONWEAR · MADE WITH MEANING</a>
       </section>
       <div className="marquee"><div>MADE TO MEASURE <span>✳</span> ROOTED IN CULTURE <span>✳</span> READY FOR YOUR MOMENT <span>✳</span></div></div>
