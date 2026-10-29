@@ -71,7 +71,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  useEffect(() => { void refresh(); }, [refresh]);
+  useEffect(() => {
+    void refresh();
+    const onAuthChange = () => { void refresh(); };
+    window.addEventListener('aramya:auth-change', onAuthChange);
+    return () => window.removeEventListener('aramya:auth-change', onAuthChange);
+  }, [refresh]);
 
   const apply = async (operation: () => Promise<CartPayload>) => {
     setError(null);
