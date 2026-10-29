@@ -4,7 +4,7 @@
 
 The active storefront is the React/Vite app in `frontend/`. The original HTML, CSS, JavaScript, and `dist/` were preserved under `legacy-storefront/` for parity checks. The existing catalog is exported from the legacy JavaScript by `scripts/audit/export-catalog.mjs`; deterministic IDs, SKUs, slugs, prices in paise, categories, and original image paths are generated without inventing stock.
 
-The initial backend is a Go/Gin REST service with PostgreSQL/pgx catalog queries. `backend/cmd/migrate` applies ordered `*.up.sql` migrations transactionally and records versions in `schema_migrations`; `backend/cmd/seed` transactionally upserts the catalog and intentionally creates no stock rows. API health and database readiness are separate. Current public routes are `/health`, `/ready`, `/api/v1/categories`, `/api/v1/products`, and `/api/v1/products/:slug`.
+The initial backend is a Go/Gin REST service with PostgreSQL/pgx catalog queries. `backend/cmd/migrate` applies ordered `*.up.sql` migrations transactionally and records versions in `schema_migrations`; it only rolls back the latest applied migration and runs the paired down SQL in a transaction. `backend/cmd/seed` transactionally upserts the catalog and creates made-to-measure variant identities without creating stock. The commerce migration includes users, hashed sessions and reset tokens, RBAC, addresses, variants, inventory ledger and reservations, carts, orders, payments, refunds, shipments, appointments, custom-order requests, media metadata, idempotency records, and audit logs. API health and database readiness are separate. Current public routes are `/health`, `/ready`, `/api/v1/categories`, `/api/v1/products`, and `/api/v1/products/:slug`.
 
 ## Target architecture
 
@@ -28,6 +28,7 @@ PostgreSQL is authoritative for catalog, identity, cart, inventory, orders, paym
 - HTTP logs use route templates and exclude query strings and request bodies.
 - Prices are integer paise and the seed does not assert historical stock values.
 - The initial schema protects historical catalog rows with restrictive foreign keys.
+- The commerce rollback refuses to convert inventory if multiple variants for one product have stock; otherwise it preserves legacy product-level on-hand and reserved quantities.
 
 ## Not implemented yet
 

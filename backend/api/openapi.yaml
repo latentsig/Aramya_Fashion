@@ -4,7 +4,7 @@ info:
   version: 0.1.0
   description: Initial database-backed catalog API. Checkout and customer operations are not implemented.
 servers:
-  - url: http://localhost:8080
+  - url: http://localhost:18080
 paths:
   /health:
     get:
@@ -55,6 +55,23 @@ paths:
       responses:
         '200':
           description: Product page
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, pagination]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+                  pagination:
+                    type: object
+                    required: [limit, offset, count]
+                    properties:
+                      limit: { type: integer }
+                      offset: { type: integer }
+                      count: { type: integer }
   /api/v1/products/{slug}:
     get:
       summary: Get an active product by slug
@@ -66,6 +83,14 @@ paths:
       responses:
         '200':
           description: Product found
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Product'
         '404':
           description: Product not found
 components:
@@ -80,3 +105,20 @@ components:
         subtitle: { type: string }
         imageKey: { type: string }
         sortOrder: { type: integer }
+    Product:
+      type: object
+      required: [id, sku, slug, name, description, categoryId, categorySlug, categoryName, pricePaise, currency, imageKey, status, inventoryPolicy]
+      properties:
+        id: { type: string, format: uuid }
+        sku: { type: string }
+        slug: { type: string }
+        name: { type: string }
+        description: { type: [string, 'null'] }
+        categoryId: { type: string, format: uuid }
+        categorySlug: { type: string }
+        categoryName: { type: string }
+        pricePaise: { type: integer, minimum: 0 }
+        currency: { type: string, minLength: 3, maxLength: 3 }
+        imageKey: { type: string }
+        status: { type: string }
+        inventoryPolicy: { type: string }

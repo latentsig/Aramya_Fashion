@@ -22,12 +22,15 @@ Requirements: Go 1.27 or newer, PostgreSQL 14 or newer, and network access to th
 
 ```powershell
 $env:DATABASE_URL = 'postgres://<local-role>:<local-password>@localhost:5432/aramya?sslmode=disable'
+$env:API_ADDR = '127.0.0.1:18080'
 go run ./cmd/migrate
 go run ./cmd/seed
 go run ./cmd/api
 ```
 
-The seed command expects `database/seeds/catalog.json`, generated from the actual legacy catalog with `node scripts/audit/export-catalog.mjs` from the repository root. Alternatively set `CATALOG_SEED_PATH` / `MIGRATIONS_DIR` to explicit paths if launching commands from another directory. The first migration creates catalog tables and no inventory quantities. Configure `CORS_ALLOWED_ORIGINS` for the frontend origin.
+The seed command expects `database/seeds/catalog.json`, generated from the actual legacy catalog with `node scripts/audit/export-catalog.mjs` from the repository root. Alternatively set `CATALOG_SEED_PATH` / `MIGRATIONS_DIR` to explicit paths if launching commands from another directory. The first migration creates catalog tables and no inventory quantities; the commerce migration adds made-to-measure product variants without stock. Configure `CORS_ALLOWED_ORIGINS` for the frontend origin. Vite proxies `/api` to `127.0.0.1:18080` in local development.
+
+Migrations are applied in lexical order and recorded in `schema_migrations`. For a pre-production local rollback, use `go run ./cmd/migrate -down 0002_commerce`; only the latest migration can be rolled back. The commerce rollback drops the new commerce tables, refuses to collapse inventory when more than one variant has stock for a product, and preserves a single variant's quantities. Use it only for development or after a verified backup. Rolling back `0001_catalog` drops the catalog tables and is destructive.
 
 ## Current limitations
 

@@ -53,7 +53,7 @@ func run() error {
 	}
 	seedPath := os.Getenv("CATALOG_SEED_PATH")
 	if seedPath == "" {
-		seedPath = filepath.Join("..", "..", "database", "seeds", "catalog.json")
+		seedPath = filepath.Join("..", "database", "seeds", "catalog.json")
 	}
 	data, err := os.ReadFile(seedPath)
 	if err != nil {
@@ -98,6 +98,12 @@ func run() error {
 			item.ID, item.SKU, item.Slug, item.Name, item.PricePaise, item.Currency, item.ImageKey, item.Status, item.InventoryPolicy, item.CategorySlug)
 		if err != nil {
 			return fmt.Errorf("seed product %q: %w", item.SKU, err)
+		}
+		_, err = tx.Exec(ctx, `INSERT INTO product_variants(product_id,sku,option_name,option_value,is_default)
+			SELECT id, sku || '-MTO', 'Fit', 'Made to measure', true FROM products WHERE sku=$1
+			ON CONFLICT(sku) DO NOTHING`, item.SKU)
+		if err != nil {
+			return fmt.Errorf("seed default made-to-measure variant for %q: %w", item.SKU, err)
 		}
 	}
 	if err := tx.Commit(ctx); err != nil {

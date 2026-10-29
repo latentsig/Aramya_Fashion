@@ -28,7 +28,7 @@ export function CollectionPage() {
       </section>
       <section className="category-products section-pad">
         <div className="section-heading"><div><p className="eyebrow">THE {category.title.toUpperCase()} EDIT</p><h2>Find the one <em>you love.</em></h2></div><Link className="text-link" to="/collections">All collections ↗</Link></div>
-        {catalogQuery.isError && <p role="status" className="catalog-status">Live catalog is unavailable. Showing the original Aramya catalog while the API reconnects.</p>}
+        {catalogQuery.isError && <div className="catalog-status"><p role="status">Live catalog is unavailable. Showing the original Aramya catalog.</p><button type="button" onClick={() => void catalogQuery.refetch()}>Retry live catalog</button></div>}
         <div className="product-grid">{collectionProducts.map((product) => <ProductCard key={product.name} product={product} />)}</div>
       </section>
     </main>

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -133,7 +134,7 @@ func cors(origins []string) gin.HandlerFunc {
 
 func writeInternalError(c *gin.Context, logger *slog.Logger, err error) {
 	if logger != nil {
-		logger.Error("request_failed", "request_id", c.GetString("requestID"), "error", err)
+		logger.Error("request_failed", "request_id", c.GetString("requestID"), "error_type", fmt.Sprintf("%T", err))
 	}
 	c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"code": "internal_error", "message": "The request could not be completed"}})
 }
