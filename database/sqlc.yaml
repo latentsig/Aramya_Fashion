@@ -1,0 +1,10 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    queries: "queries"
+    schema: "migrations/0001_catalog.up.sql"
+    gen:
+      go:
+        package: "dbgen"
+        out: "../backend/internal/database/dbgen"
+        sql_package: "pgx/v5"

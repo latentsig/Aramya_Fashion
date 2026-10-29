@@ -1,0 +1,82 @@
+openapi: 3.1.0
+info:
+  title: Aramya Fashion API
+  version: 0.1.0
+  description: Initial database-backed catalog API. Checkout and customer operations are not implemented.
+servers:
+  - url: http://localhost:8080
+paths:
+  /health:
+    get:
+      summary: Process health
+      responses:
+        '200':
+          description: Process is running
+  /ready:
+    get:
+      summary: Database readiness
+      responses:
+        '200':
+          description: Database is reachable
+        '503':
+          description: Database is unavailable
+  /api/v1/categories:
+    get:
+      summary: List active catalog categories
+      responses:
+        '200':
+          description: Category list
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Category'
+  /api/v1/products:
+    get:
+      summary: Search and paginate active products
+      parameters:
+        - in: query
+          name: category
+          schema: { type: string }
+        - in: query
+          name: search
+          schema: { type: string }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 24 }
+        - in: query
+          name: offset
+          schema: { type: integer, minimum: 0, maximum: 100000, default: 0 }
+      responses:
+        '200':
+          description: Product page
+  /api/v1/products/{slug}:
+    get:
+      summary: Get an active product by slug
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Product found
+        '404':
+          description: Product not found
+components:
+  schemas:
+    Category:
+      type: object
+      required: [id, slug, name, subtitle, imageKey, sortOrder]
+      properties:
+        id: { type: string, format: uuid }
+        slug: { type: string }
+        name: { type: string }
+        subtitle: { type: string }
+        imageKey: { type: string }
+        sortOrder: { type: integer }
