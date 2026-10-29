@@ -201,6 +201,17 @@ func (s *Service) Authenticate(ctx context.Context, token string) (Authenticated
 	return session, err
 }
 
+func (s *Service) HasRole(ctx context.Context, userID, role string) (bool, error) {
+	dbCtx, cancel := context.WithTimeout(ctx, s.queryTimeout)
+	defer cancel()
+	var allowed bool
+	err := s.pool.QueryRow(dbCtx, `SELECT EXISTS (
+		SELECT 1 FROM user_roles ur JOIN roles r ON r.id=ur.role_id
+		WHERE ur.user_id=$1 AND r.name=$2
+	)`, userID, role).Scan(&allowed)
+	return allowed, err
+}
+
 func (s *Service) Logout(ctx context.Context, token string) error {
 	if token == "" {
 		return nil

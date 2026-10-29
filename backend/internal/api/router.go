@@ -23,6 +23,8 @@ type RouterConfig struct {
 	Checkout              *checkout.Service
 	Orders                OrderReader
 	StudioRequests        StudioRequestWriter
+	AdminStudio           AdminStudioRepository
+	AdminIdentity         AdminIdentity
 	Ready                 func() error
 	AllowedOrigins        []string
 	SessionCookieSecure   bool
@@ -60,6 +62,9 @@ func NewRouter(cfg RouterConfig) *gin.Engine {
 	}
 	if cfg.StudioRequests != nil {
 		registerStudioRoutes(v1, cfg.StudioRequests, cfg.Auth, cfg.Logger)
+	}
+	if cfg.AdminStudio != nil {
+		registerAdminStudioRoutes(v1, cfg.AdminStudio, cfg.AdminIdentity, cfg.Logger)
 	}
 	v1.GET("/categories", func(c *gin.Context) {
 		items, err := cfg.Catalog.ListCategories(c.Request.Context())

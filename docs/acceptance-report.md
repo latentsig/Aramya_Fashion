@@ -98,3 +98,12 @@ This report tracks verified milestones. It does not claim full e-commerce accept
 - Changed the video from contain to cover so its full vertical frame fills the hero instead of leaving large empty bands. Kept the existing still-image poster fallback and documented the source and license in `docs/media-attributions.md`.
 - `npm test -- --maxWorkers=1 --minWorkers=1`: 14/14 passed. `npm run build`: passed; only existing Zod annotation and bundle-size warnings.
 - Remaining: confirm final aesthetic preference on the target browser/device; this change does not alter payment, admin, PWA, Android, monitoring, or deployment scope.
+
+## Admin studio request workflow — tested locally
+
+- Added role-gated appointment and made-to-order request queues at `/admin/appointments` and `/admin/custom-orders`, with bounded search/status filters and pagination. Customer sessions receive 403; unauthenticated sessions receive 401.
+- Added transactional staff status updates with row locks, expected-status conflict checks, positive integer-paise quotation validation, and an `audit_logs` entry in the same transaction. Admin actions cannot mark a custom request customer-approved or start fulfillment.
+- Added `go run ./cmd/seed-admin` as explicit development setup. It reads a process-scoped password input, uses Argon2id, creates a new administrator in one transaction, and refuses to elevate an existing customer. Setup steps and request transition rules are documented in `docs/admin-studio-workflow.md`.
+- Disposable PostgreSQL 16 / Go API verification passed: admin queue reads, appointment confirmation, stale-write 409, custom-order review and quotation, transition to `awaiting_approval`, admin approval-bypass rejection, and four persisted actor-attributed audit events. Temporary test user, requests, idempotency rows, and audit entries were cleaned up.
+- Frontend admin queue tests passed 3/3 as part of the 17-test suite. Go transition-matrix, route authorization/validation, and seed-admin input tests were added; full Go and production-build results are recorded after the final verification run.
+- Remaining: broader product/order/inventory/media administration, customer-side quotation approval, notifications, R2, Razorpay, PWA, Android, monitoring, and GCP deployment are not implemented.

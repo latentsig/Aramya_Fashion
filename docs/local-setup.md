@@ -37,10 +37,14 @@ Customer registration, login, logout, and current-session lookup are available u
 
 The cart API is available under `/api/v1/cart`. A first `GET` creates a guest cart and sets a random HttpOnly cart cookie; the database stores only its hash. `POST /items` accepts a product variant ID and quantity, while `PATCH` and `DELETE` target server-issued cart-line IDs. Subtotals come from database prices. Tracked inventory is checked when adding or changing quantity; guest lines merge into an authenticated customer's cart after login and tracked quantities are clamped to remaining stock. The storefront uses these API calls when the live catalog provides variant IDs.
 
+### Studio administration
+
+The `/admin/appointments` and `/admin/custom-orders` staff screens read and update PostgreSQL-backed studio requests. To create a first development administrator, use the hidden password-prompt procedure in [admin-studio-workflow.md](admin-studio-workflow.md). Never promote a customer from browser code or expose an admin password in shell history. Appointment and custom-request transitions are audited; a custom quotation remains pending customer approval and does not create an order or payment.
+
 Checkout exposes `POST /api/v1/checkout/quote` and idempotent `POST /api/v1/checkout/orders`. The order endpoint snapshots current product and variant data in a PostgreSQL transaction, records the initial `pending_payment` event, and clears the cart. Until shipping/tax policy and Razorpay test credentials are configured, the quote is marked provisional, payment is explicitly unavailable, and the storefront only saves a pending order request—it does not claim a payment or reserve inventory.
 
 Migrations are applied in lexical order and recorded in `schema_migrations`. For a pre-production local rollback, use `go run ./cmd/migrate -down 0002_commerce`; only the latest migration can be rolled back. The commerce rollback drops the new commerce tables, refuses to collapse inventory when more than one variant has stock for a product, and preserves a single variant's quantities. Use it only for development or after a verified backup. Rolling back `0001_catalog` drops the catalog tables and is destructive.
 
 ## Current limitations
 
-The storefront provides `/login`, `/register`, and `/account` using the session API. Password reset/email verification and Google sign-in are not implemented. Payment initiation/verification, cancellations/refunds, R2, appointments, admin, PWA and Android setup remain outstanding. Razorpay credentials are not needed or used by the local pending-order flow. Never use live payment credentials for development.
+The storefront provides `/login`, `/register`, and `/account` using the session API. Password reset/email verification and Google sign-in are not implemented. Payment initiation/verification, cancellations/refunds, R2, product/order/inventory/media admin, appointment notifications, customer quotation approval, PWA, and Android setup remain outstanding. Razorpay credentials are not needed or used by the local pending-order flow. Never use live payment credentials for development.
