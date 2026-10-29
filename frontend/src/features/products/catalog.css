@@ -1,1 +1,2 @@
+.cart-feedback{position:fixed;z-index:20;right:20px;top:140px;max-width:min(360px,calc(100vw - 32px));padding:13px 17px;background:#67121a;color:#fff;font-size:12px;line-height:1.5;box-shadow:0 8px 24px #211b1a24}
 .catalog-status{margin:0 0 20px;padding:12px 15px;background:#efe9e2;color:#625752;font-size:11px;line-height:1.6;display:flex;justify-content:space-between;align-items:center;gap:12px}.catalog-status p{margin:0}.catalog-status button{border:0;border-bottom:1px solid var(--red);padding:4px 0;background:transparent;color:var(--red);font:inherit;cursor:pointer}

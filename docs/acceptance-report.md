@@ -36,3 +36,12 @@ This report tracks verified milestones. It does not claim full e-commerce accept
 - Integration-tested against the isolated PostgreSQL cluster: registration `201`, `/me` `200`, logout `204`, login `200`, wrong password `401`, missing/forged CSRF `403`. PostgreSQL confirmed session token hashes are 32 bytes and customer roles were assigned. Test API and PostgreSQL cluster were stopped afterward.
 - `go test -count=1 ./...`, `go vet ./...`, and `git diff --check` passed after the auth implementation. Frontend production build passed after the home custom-order photo was changed to a full-length catalog lehenga (`lehanga1.jpg`).
 - Integration coverage currently exercises the principal session/CSRF paths; Google OAuth, reset/verification delivery, and frontend login/account pages remain outstanding.
+
+## Persistent cart milestone — verified locally, pending PR
+
+- Catalog products now include the active default variant UUID. Guest and authenticated carts use `product_variant_id` and server-issued cart-line IDs; the browser no longer calculates or stores cart identity/totals by product name in localStorage.
+- Implemented `GET /api/v1/cart`, `POST /api/v1/cart/items`, `PATCH /api/v1/cart/items/:id`, and `DELETE /api/v1/cart/items/:id`, with a random HttpOnly guest-cart cookie whose SHA-256 hash is stored in PostgreSQL. Guest carts merge on the next cart read after authentication.
+- The API computes unit price and subtotal from active database catalog prices. Tracked stock is locked and validated on add/update; a tracked inventory integration check rejected an over-stock add with `409` and clamped a stale guest cart to available quantity during merge.
+- The React cart provider uses credentialed API requests and CSRF headers, persists guest carts through the server cookie, and updates cart quantity/removal from API responses. Add-to-bag is disabled until a live product variant is available, avoiding a fake local-only cart operation.
+- PostgreSQL integration checks passed for guest cart creation, HttpOnly cookie, add/server subtotal, quantity update, guest-to-customer merge, remove, tracked stock rejection, and merge clamp. Temporary stock fixture was removed.
+- `go test -count=1 ./...`, `go vet ./...`, `npm test` (6/6), and `npm run build` passed after the implementation. OpenAPI parses as YAML 3.1.0. The temporary API/database processes were stopped after verification.

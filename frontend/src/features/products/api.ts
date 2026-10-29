@@ -3,6 +3,7 @@ import { imageUrl, type Product } from './catalog';
 
 const productSchema = z.object({
   id: z.string().uuid(),
+  defaultVariantId: z.string().uuid(),
   sku: z.string(),
   slug: z.string(),
   name: z.string(),
@@ -32,6 +33,7 @@ export async function fetchCatalogProducts(category?: string, signal?: AbortSign
   const payload = productResponseSchema.parse(await response.json());
   return payload.data.map((product) => ({
     id: product.id,
+    variantId: product.defaultVariantId,
     slug: product.slug,
     sku: product.sku,
     name: product.name,

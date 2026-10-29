@@ -108,6 +108,84 @@ paths:
       responses:
         '200': { description: Current customer }
         '401': { description: Session is missing, expired, or revoked }
+  /api/v1/cart:
+    get:
+      summary: Read or create the persistent guest/customer cart
+      responses:
+        '200': { description: Cart lines and server-calculated subtotal }
+  /api/v1/cart/items:
+    post:
+      summary: Add a product variant to the persistent cart
+      parameters:
+        - in: cookie
+          name: aramya_csrf
+          required: true
+          schema: { type: string }
+        - in: header
+          name: X-CSRF-Token
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [variantId, quantity]
+              properties:
+                variantId: { type: string, format: uuid }
+                quantity: { type: integer, minimum: 1, maximum: 20 }
+      responses:
+        '200': { description: Updated cart and server-calculated subtotal }
+        '404': { description: Product variant is unavailable }
+        '409': { description: Insufficient stock }
+  /api/v1/cart/items/{id}:
+    patch:
+      summary: Set a cart line quantity; zero removes the line
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+        - in: cookie
+          name: aramya_csrf
+          required: true
+          schema: { type: string }
+        - in: header
+          name: X-CSRF-Token
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [quantity]
+              properties:
+                quantity: { type: integer, minimum: 0, maximum: 20 }
+      responses:
+        '200': { description: Updated cart }
+        '404': { description: Cart line was not found }
+        '409': { description: Insufficient stock }
+    delete:
+      summary: Remove a cart line
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+        - in: cookie
+          name: aramya_csrf
+          required: true
+          schema: { type: string }
+        - in: header
+          name: X-CSRF-Token
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Updated cart }
+        '404': { description: Cart line was not found }
   /api/v1/products:
     get:
       summary: Search and paginate active products
@@ -199,9 +277,10 @@ components:
         displayName: { type: string }
     Product:
       type: object
-      required: [id, sku, slug, name, description, categoryId, categorySlug, categoryName, pricePaise, currency, imageKey, status, inventoryPolicy]
+      required: [id, defaultVariantId, sku, slug, name, description, categoryId, categorySlug, categoryName, pricePaise, currency, imageKey, status, inventoryPolicy]
       properties:
         id: { type: string, format: uuid }
+        defaultVariantId: { type: string, format: uuid }
         sku: { type: string }
         slug: { type: string }
         name: { type: string }

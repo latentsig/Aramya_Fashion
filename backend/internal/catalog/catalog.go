@@ -22,19 +22,20 @@ type Category struct {
 }
 
 type Product struct {
-	ID              string  `json:"id"`
-	SKU             string  `json:"sku"`
-	Slug            string  `json:"slug"`
-	Name            string  `json:"name"`
-	Description     *string `json:"description"`
-	CategoryID      string  `json:"categoryId"`
-	CategorySlug    string  `json:"categorySlug"`
-	CategoryName    string  `json:"categoryName"`
-	PricePaise      int64   `json:"pricePaise"`
-	Currency        string  `json:"currency"`
-	ImageKey        string  `json:"imageKey"`
-	Status          string  `json:"status"`
-	InventoryPolicy string  `json:"inventoryPolicy"`
+	ID               string  `json:"id"`
+	DefaultVariantID string  `json:"defaultVariantId"`
+	SKU              string  `json:"sku"`
+	Slug             string  `json:"slug"`
+	Name             string  `json:"name"`
+	Description      *string `json:"description"`
+	CategoryID       string  `json:"categoryId"`
+	CategorySlug     string  `json:"categorySlug"`
+	CategoryName     string  `json:"categoryName"`
+	PricePaise       int64   `json:"pricePaise"`
+	Currency         string  `json:"currency"`
+	ImageKey         string  `json:"imageKey"`
+	Status           string  `json:"status"`
+	InventoryPolicy  string  `json:"inventoryPolicy"`
 }
 
 type Repository struct {
@@ -71,9 +72,9 @@ func (r *Repository) ListProducts(ctx context.Context, category, search string, 
 	categoryFilter := blankToNil(category)
 	searchFilter := blankToNil(search)
 	rows, err := r.pool.Query(ctx, `
-		SELECT p.id::text, p.sku, p.slug, p.name, p.description, p.category_id::text,
+		SELECT p.id::text, v.id::text, p.sku, p.slug, p.name, p.description, p.category_id::text,
 		       c.slug, c.name, p.price_paise, p.currency, p.image_key, p.status, p.inventory_policy
-		FROM products p JOIN categories c ON c.id = p.category_id
+		FROM products p JOIN categories c ON c.id = p.category_id JOIN product_variants v ON v.product_id=p.id AND v.is_default AND v.active
 		WHERE p.status = 'active'
 		  AND ($1::text IS NULL OR c.slug = $1)
 		  AND ($2::text IS NULL OR p.name ILIKE '%' || $2 || '%' OR coalesce(p.description, '') ILIKE '%' || $2 || '%')
@@ -97,9 +98,9 @@ func (r *Repository) GetProduct(ctx context.Context, slug string) (Product, erro
 	ctx, cancel := context.WithTimeout(ctx, r.queryTimeout)
 	defer cancel()
 	row := r.pool.QueryRow(ctx, `
-		SELECT p.id::text, p.sku, p.slug, p.name, p.description, p.category_id::text,
+		SELECT p.id::text, v.id::text, p.sku, p.slug, p.name, p.description, p.category_id::text,
 		       c.slug, c.name, p.price_paise, p.currency, p.image_key, p.status, p.inventory_policy
-		FROM products p JOIN categories c ON c.id = p.category_id
+		FROM products p JOIN categories c ON c.id = p.category_id JOIN product_variants v ON v.product_id=p.id AND v.is_default AND v.active
 		WHERE p.status = 'active' AND p.slug = $1`, slug)
 	product, err := scanProduct(row)
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -114,7 +115,7 @@ type scanner interface {
 
 func scanProduct(row scanner) (Product, error) {
 	var item Product
-	err := row.Scan(&item.ID, &item.SKU, &item.Slug, &item.Name, &item.Description, &item.CategoryID,
+	err := row.Scan(&item.ID, &item.DefaultVariantID, &item.SKU, &item.Slug, &item.Name, &item.Description, &item.CategoryID,
 		&item.CategorySlug, &item.CategoryName, &item.PricePaise, &item.Currency, &item.ImageKey, &item.Status, &item.InventoryPolicy)
 	return item, err
 }

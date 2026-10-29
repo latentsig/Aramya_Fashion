@@ -6,7 +6,7 @@ describe('fetchCatalogProducts', () => {
 
   it('maps the database API response to the storefront product model', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ data: [{
-      id: '7af7c9e8-8c8d-5ad5-b48e-51bb0fe40b5c', sku: 'SAREES-001', slug: 'heirloom-saree', name: 'The Heirloom Saree',
+      id: '7af7c9e8-8c8d-5ad5-b48e-51bb0fe40b5c', defaultVariantId: '7af7c9e8-8c8d-5ad5-b48e-51bb0fe40b5d', sku: 'SAREES-001', slug: 'heirloom-saree', name: 'The Heirloom Saree',
       description: null, categoryId: '6bc7e5d2-284e-5982-a93a-c44c401f99a8', categorySlug: 'sarees', categoryName: 'Sarees',
       pricePaise: 890000, currency: 'INR', imageKey: 'image assests/saree1.jpg', status: 'active', inventoryPolicy: 'made_to_order',
     }] }), { status: 200 })));

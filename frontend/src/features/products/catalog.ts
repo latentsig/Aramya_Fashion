@@ -6,6 +6,9 @@ export interface Category {
 }
 
 export interface Product {
+  id?: string;
+  slug?: string;
+  variantId?: string;
   name: string;
   category: string;
   label: string;
