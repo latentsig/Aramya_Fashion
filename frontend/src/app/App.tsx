@@ -8,6 +8,7 @@ import { CheckoutPage } from './CheckoutPage';
 import { AccountPage, LoginPage, RegisterPage } from './AuthPages';
 import { AccountOrdersPage, OrderDetailPage } from './OrdersPages';
 import { ProductPage } from './ProductPage';
+import { StudioRequestDialog } from '../components/appointments/StudioRequestDialog';
 
 export default function App() {
   return (
@@ -29,6 +30,7 @@ export default function App() {
         <Route path="*" element={<main className="section-pad"><h1>Page not found</h1></main>} />
       </Routes>
       <SiteFooter />
+      <StudioRequestDialog />
     </>
   );
 }

@@ -22,6 +22,7 @@ type RouterConfig struct {
 	Cart                  *cart.Service
 	Checkout              *checkout.Service
 	Orders                OrderReader
+	StudioRequests        StudioRequestWriter
 	Ready                 func() error
 	AllowedOrigins        []string
 	SessionCookieSecure   bool
@@ -56,6 +57,9 @@ func NewRouter(cfg RouterConfig) *gin.Engine {
 	}
 	if cfg.Orders != nil {
 		registerOrderRoutes(v1, cfg.Orders, cfg.Auth, cfg.Logger)
+	}
+	if cfg.StudioRequests != nil {
+		registerStudioRoutes(v1, cfg.StudioRequests, cfg.Auth, cfg.Logger)
 	}
 	v1.GET("/categories", func(c *gin.Context) {
 		items, err := cfg.Catalog.ListCategories(c.Request.Context())

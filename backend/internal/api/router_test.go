@@ -2,13 +2,16 @@ package api
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
+	"github.com/latentsig/aramya-fashion/backend/internal/appointments"
 	"github.com/latentsig/aramya-fashion/backend/internal/orders"
 )
 
@@ -16,6 +19,25 @@ type unusedOrderReader struct{}
 
 func (unusedOrderReader) List(context.Context, string, int, int) ([]orders.Summary, error) {
 	return nil, errors.New("order repository must not be called without a customer session")
+}
+
+type studioRequestRecorder struct {
+	appointment      appointments.AppointmentInput
+	customOrder      appointments.CustomOrderInput
+	appointmentCalls int
+	customOrderCalls int
+}
+
+func (r *studioRequestRecorder) CreateAppointment(_ context.Context, _, _ string, input appointments.AppointmentInput) (appointments.CreatedRequest, bool, error) {
+	r.appointment = input
+	r.appointmentCalls++
+	return appointments.CreatedRequest{ID: "2b4172b4-2897-4aaa-aa58-9196176f6f03", Status: "requested"}, false, nil
+}
+
+func (r *studioRequestRecorder) CreateCustomOrderRequest(_ context.Context, _, _ string, input appointments.CustomOrderInput) (appointments.CreatedRequest, bool, error) {
+	r.customOrder = input
+	r.customOrderCalls++
+	return appointments.CreatedRequest{ID: "709991d6-a2be-4916-a4ce-7a79a18387a6", Status: "requested"}, false, nil
 }
 
 func (unusedOrderReader) Get(context.Context, string, string) (orders.Detail, error) {
@@ -91,5 +113,59 @@ func TestOrderRoutesRequireCustomerSession(t *testing.T) {
 		if response.Code != http.StatusUnauthorized {
 			t.Errorf("GET %s status = %d, want %d", path, response.Code, http.StatusUnauthorized)
 		}
+	}
+}
+
+func TestStudioRequestsAcceptGuestAppointmentAndCustomOrder(t *testing.T) {
+	recorder := &studioRequestRecorder{}
+	router := NewRouter(RouterConfig{StudioRequests: recorder})
+	tests := []struct {
+		path   string
+		body   string
+		wantID string
+	}{
+		{path: "/api/v1/appointments", body: `{"name":"Studio Guest","email":"guest@example.com","interest":"Bridal or wedding wear","note":"Wedding in December"}`, wantID: "2b4172b4-2897-4aaa-aa58-9196176f6f03"},
+		{path: "/api/v1/custom-order-requests", body: `{"name":"Studio Guest","phone":"+91 98765 43210","garmentType":"Lehenga","occasion":"Wedding","requirements":"Discuss a custom fit"}`, wantID: "709991d6-a2be-4916-a4ce-7a79a18387a6"},
+	}
+	for _, test := range tests {
+		response := httptest.NewRecorder()
+		request := httptest.NewRequest(http.MethodPost, test.path, strings.NewReader(test.body))
+		request.Header.Set("Content-Type", "application/json")
+		request.Header.Set("Idempotency-Key", "local-test-request-0001")
+		router.ServeHTTP(response, request)
+		if response.Code != http.StatusCreated {
+			t.Fatalf("POST %s status = %d, body=%s", test.path, response.Code, response.Body.String())
+		}
+		var payload struct {
+			Data appointments.CreatedRequest `json:"data"`
+		}
+		if err := json.Unmarshal(response.Body.Bytes(), &payload); err != nil {
+			t.Fatalf("decode POST %s response: %v", test.path, err)
+		}
+		if payload.Data.ID != test.wantID || payload.Data.Status != "requested" {
+			t.Errorf("POST %s result = %+v", test.path, payload.Data)
+		}
+	}
+	if recorder.appointmentCalls != 1 || recorder.appointment.Email != "guest@example.com" {
+		t.Errorf("appointment repository call = %d, input=%+v", recorder.appointmentCalls, recorder.appointment)
+	}
+	if recorder.customOrderCalls != 1 || recorder.customOrder.Phone != "+91 98765 43210" {
+		t.Errorf("custom order repository call = %d, input=%+v", recorder.customOrderCalls, recorder.customOrder)
+	}
+}
+
+func TestStudioRequestsRejectInvalidContactBeforePersistence(t *testing.T) {
+	recorder := &studioRequestRecorder{}
+	router := NewRouter(RouterConfig{StudioRequests: recorder})
+	request := httptest.NewRequest(http.MethodPost, "/api/v1/appointments", strings.NewReader(`{"name":"Studio Guest","email":"not-an-email"}`))
+	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("Idempotency-Key", "local-test-request-0001")
+	response := httptest.NewRecorder()
+	router.ServeHTTP(response, request)
+	if response.Code != http.StatusBadRequest {
+		t.Fatalf("status = %d, want %d", response.Code, http.StatusBadRequest)
+	}
+	if recorder.appointmentCalls != 0 {
+		t.Fatalf("invalid appointment reached persistence %d times", recorder.appointmentCalls)
 	}
 }

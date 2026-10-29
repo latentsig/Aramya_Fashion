@@ -13,6 +13,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/latentsig/aramya-fashion/backend/internal/api"
+	"github.com/latentsig/aramya-fashion/backend/internal/appointments"
 	"github.com/latentsig/aramya-fashion/backend/internal/auth"
 	"github.com/latentsig/aramya-fashion/backend/internal/cart"
 	"github.com/latentsig/aramya-fashion/backend/internal/catalog"
@@ -63,11 +64,12 @@ func main() {
 	}
 
 	router := api.NewRouter(api.RouterConfig{
-		Catalog:  catalog.NewRepository(pool, cfg.QueryTimeout),
-		Auth:     authService,
-		Cart:     cartService,
-		Checkout: checkoutService,
-		Orders:   orderRepository,
+		Catalog:        catalog.NewRepository(pool, cfg.QueryTimeout),
+		Auth:           authService,
+		Cart:           cartService,
+		Checkout:       checkoutService,
+		Orders:         orderRepository,
+		StudioRequests: appointments.NewRepository(pool, cfg.QueryTimeout),
 		Ready: func() error {
 			ctx, cancel := context.WithTimeout(context.Background(), cfg.QueryTimeout)
 			defer cancel()

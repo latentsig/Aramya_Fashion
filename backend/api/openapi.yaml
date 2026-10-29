@@ -299,6 +299,64 @@ paths:
         '400': { description: Invalid order ID }
         '401': { description: Customer session is missing, expired, or revoked }
         '404': { description: Order does not exist for this customer }
+  /api/v1/appointments:
+    post:
+      summary: Save a guest or customer studio appointment request
+      security: [{ csrfToken: [], csrfCookie: [] }]
+      parameters:
+        - in: header
+          name: Idempotency-Key
+          required: true
+          schema: { type: string, minLength: 16, maxLength: 128 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AppointmentRequest' }
+      responses:
+        '201':
+          description: Appointment request saved with requested status; this does not confirm a time
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: '#/components/schemas/CreatedStudioRequest' }
+        '200': { description: Idempotent replay of the original request result }
+        '400': { description: Invalid name or contact details }
+        '409': { description: Request key was already used with different details }
+        '403': { description: CSRF token rejected }
+        '429': { description: Studio request rate limit exceeded }
+  /api/v1/custom-order-requests:
+    post:
+      summary: Save a guest or customer custom garment inquiry for studio review and quotation
+      security: [{ csrfToken: [], csrfCookie: [] }]
+      parameters:
+        - in: header
+          name: Idempotency-Key
+          required: true
+          schema: { type: string, minLength: 16, maxLength: 128 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CustomOrderRequest' }
+      responses:
+        '201':
+          description: Custom inquiry saved in requested status; no order or payment is created
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: '#/components/schemas/CreatedStudioRequest' }
+        '200': { description: Idempotent replay of the original request result }
+        '400': { description: Invalid request details }
+        '409': { description: Request key was already used with different details }
+        '403': { description: CSRF token rejected }
+        '429': { description: Studio request rate limit exceeded }
   /api/v1/products:
     get:
       summary: Search and paginate active products
@@ -435,6 +493,34 @@ components:
             images:
               type: array
               items: { $ref: '#/components/schemas/ProductImage' }
+    AppointmentRequest:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 120 }
+        email: { type: string, format: email, maxLength: 254 }
+        phone: { type: string, maxLength: 32 }
+        interest: { type: string, maxLength: 120 }
+        note: { type: string, maxLength: 1000 }
+      description: At least one of email or phone must be a valid contact method.
+    CustomOrderRequest:
+      type: object
+      required: [name, garmentType]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 120 }
+        email: { type: string, format: email, maxLength: 254 }
+        phone: { type: string, maxLength: 32 }
+        garmentType: { type: string, minLength: 1, maxLength: 120 }
+        occasion: { type: string, maxLength: 160 }
+        requirements: { type: string, maxLength: 3000 }
+      description: At least one of email or phone must be a valid contact method. The request is quoted and approved before any order or payment.
+    CreatedStudioRequest:
+      type: object
+      required: [id, status, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        status: { type: string, const: requested }
+        createdAt: { type: string, format: date-time }
     OrderSummary:
       type: object
       required: [id, orderNumber, status, currency, subtotalPaise, taxPaise, shippingPaise, discountPaise, totalPaise, createdAt]
