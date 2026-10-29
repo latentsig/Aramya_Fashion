@@ -7,6 +7,7 @@ import { CartProvider } from './features/cart/CartContext';
 import { AuthProvider } from './features/auth/AuthContext';
 import './styles/tokens.css';
 import './features/products/catalog.css';
+import './features/products/product-detail.css';
 import './features/auth/auth.css';
 import './features/orders/orders.css';
 

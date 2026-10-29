@@ -7,6 +7,7 @@ import { CartPage } from './CartPage';
 import { CheckoutPage } from './CheckoutPage';
 import { AccountPage, LoginPage, RegisterPage } from './AuthPages';
 import { AccountOrdersPage, OrderDetailPage } from './OrdersPages';
+import { ProductPage } from './ProductPage';
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/collections" element={<HomePage />} />
         <Route path="/collections/:slug" element={<CollectionPage />} />
+        <Route path="/products/:slug" element={<ProductPage />} />
         <Route path="/cart" element={<CartPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/login" element={<LoginPage />} />

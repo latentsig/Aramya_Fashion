@@ -84,7 +84,7 @@ func NewRouter(cfg RouterConfig) *gin.Engine {
 		c.JSON(http.StatusOK, gin.H{"data": items, "pagination": gin.H{"limit": limit, "offset": offset, "count": len(items)}})
 	})
 	v1.GET("/products/:slug", func(c *gin.Context) {
-		item, err := cfg.Catalog.GetProduct(c.Request.Context(), c.Param("slug"))
+		item, err := cfg.Catalog.GetProductDetail(c.Request.Context(), c.Param("slug"))
 		if err == catalog.ErrNotFound {
 			c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"code": "product_not_found", "message": "Product not found"}})
 			return
