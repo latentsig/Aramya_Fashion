@@ -1,0 +1,27 @@
+import { Link, useParams } from 'react-router-dom';
+import { ProductCard } from '../components/catalog/ProductCard';
+import { categories, products } from '../features/products/catalog';
+
+export function CollectionPage() {
+  const { slug = '' } = useParams();
+  const category = categories.find((item) => item.id === slug);
+  const collectionProducts = products.filter((product) => product.category === slug);
+
+  if (!category) return <main className="section-pad"><h1>Collection not found</h1><Link to="/collections">Explore all collections ↗</Link></main>;
+
+  return (
+    <main>
+      <section className="category-page section-pad">
+        <Link className="breadcrumbs" to="/collections">COLLECTIONS <span>/</span> {category.title.toUpperCase()}</Link>
+        <p className="eyebrow">MADE FOR YOUR MOMENTS</p>
+        <h1>{category.title} for <em>your moments.</em></h1>
+        <p className="category-lede">{category.subtitle}. Explore the edit, then visit our studio to make the fit your own.</p>
+        <div className="category-page-note"><span>MADE TO ORDER</span><span>PERSONAL FIT AVAILABLE</span><a href="/#appointment">Plan a studio visit ↗</a></div>
+      </section>
+      <section className="category-products section-pad">
+        <div className="section-heading"><div><p className="eyebrow">THE {category.title.toUpperCase()} EDIT</p><h2>Find the one <em>you love.</em></h2></div><Link className="text-link" to="/collections">All collections ↗</Link></div>
+        <div className="product-grid">{collectionProducts.map((product) => <ProductCard key={product.name} product={product} />)}</div>
+      </section>
+    </main>
+  );
+}
