@@ -1,6 +1,6 @@
 # Acceptance report — implementation in progress
 
-This report tracks verified milestones. It does not claim full e-commerce acceptance; payment processing, customer-facing auth UI, administration, R2, PWA, Android, monitoring, and cloud deployment are not implemented.
+This report tracks verified milestones. It does not claim full e-commerce acceptance; payment processing, password reset/email verification, Google sign-in, administration, R2, PWA, Android, monitoring, and cloud deployment are not implemented.
 
 ## Verified repository/catalog/API milestone
 
@@ -35,7 +35,7 @@ This report tracks verified milestones. It does not claim full e-commerce accept
 - Added signed, expiring anonymous CSRF tokens and session-bound CSRF hashes; missing, forged, mismatched, and expired unsafe-request tokens are rejected. Authentication requests are rate limited, bodies are capped, and cookie-authenticated CORS stays restricted to the configured origin allowlist.
 - Integration-tested against the isolated PostgreSQL cluster: registration `201`, `/me` `200`, logout `204`, login `200`, wrong password `401`, missing/forged CSRF `403`. PostgreSQL confirmed session token hashes are 32 bytes and customer roles were assigned. Test API and PostgreSQL cluster were stopped afterward.
 - `go test -count=1 ./...`, `go vet ./...`, and `git diff --check` passed after the auth implementation. Frontend production build passed after the home custom-order photo was changed to a full-length catalog lehenga (`lehanga1.jpg`).
-- Integration coverage currently exercises the principal session/CSRF paths; Google OAuth, reset/verification delivery, and frontend login/account pages remain outstanding.
+- Integration coverage exercises the principal session/CSRF paths; Google OAuth and reset/verification delivery remain outstanding.
 - PR #4 merged to `main` at `c35db70fb9ae02dce4186637dd1fe6c30613bdbd`.
 
 ## Persistent cart milestone — verified locally and merged
@@ -56,3 +56,10 @@ This report tracks verified milestones. It does not claim full e-commerce accept
 - Local integration checks passed: quote total from current database price, order `201` in `pending_payment`, order item and initial status event in PostgreSQL, cart cleared, identical replay `200`, and conflicting idempotency payload `409`.
 - Quotes remain provisional and the storefront marks online payment unavailable because shipping/tax policy and Razorpay test credentials are not configured. No payment success was simulated.
 - `go test -count=1 ./...`, `go vet ./...`, `npm test` (7/7), `npm run build`, OpenAPI YAML parsing, and `git diff --check` passed for this checkout milestone. Build warnings remain limited to upstream Zod annotations.
+
+## Customer auth UI milestone — verified locally, current branch
+
+- Added `/login`, `/register`, and `/account` pages using React Hook Form and Zod validation, HTTP-only session cookies, and the backend's CSRF bootstrap endpoint.
+- Successful login and registration store the returned customer in the auth context; logout revokes the session and refreshes the cart context so guest/customer carts follow the session identity.
+- The header switches between Sign in and Account based on the current session. Auth errors are shown accessibly; there are no fake Google or password-reset actions.
+- Frontend auth flow test covers CSRF-protected login/logout; `npm test` passed 8/8 and `npm run build` passed. Sign-up UI is typechecked and exercises the same registration API flow; database registration was verified in the prior auth API integration milestone.

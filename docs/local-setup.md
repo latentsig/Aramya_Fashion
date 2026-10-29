@@ -43,4 +43,4 @@ Migrations are applied in lexical order and recorded in `schema_migrations`. For
 
 ## Current limitations
 
-The API serves catalog reads, the initial customer session lifecycle, persistent guest/customer carts, provisional quotes and pending-payment order snapshots. Customer-facing login UI, password reset/email verification, Google sign-in, payment initiation/verification, cancellations/refunds, R2, appointments, admin, PWA and Android setup remain unimplemented. Razorpay credentials are not needed or used by the local pending-order flow. Never use live payment credentials for development.
+The storefront provides `/login`, `/register`, and `/account` using the session API. Password reset/email verification and Google sign-in are not implemented. Payment initiation/verification, cancellations/refunds, R2, appointments, admin, PWA and Android setup remain outstanding. Razorpay credentials are not needed or used by the local pending-order flow. Never use live payment credentials for development.
