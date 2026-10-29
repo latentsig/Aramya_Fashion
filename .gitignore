@@ -6,3 +6,4 @@ frontend/*.tsbuildinfo
 .env
 .env.*
 !.env.example
+frontend/.vite/
