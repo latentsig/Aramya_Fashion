@@ -14,6 +14,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/latentsig/aramya-fashion/backend/internal/api"
 	"github.com/latentsig/aramya-fashion/backend/internal/auth"
+	"github.com/latentsig/aramya-fashion/backend/internal/cart"
 	"github.com/latentsig/aramya-fashion/backend/internal/catalog"
 	"github.com/latentsig/aramya-fashion/backend/internal/config"
 )
@@ -43,10 +44,16 @@ func main() {
 		logger.Error("auth_initialization_failed", "error_type", fmt.Sprintf("%T", err))
 		os.Exit(1)
 	}
+	cartService, err := cart.NewService(pool, cfg.QueryTimeout)
+	if err != nil {
+		logger.Error("cart_initialization_failed", "error_type", fmt.Sprintf("%T", err))
+		os.Exit(1)
+	}
 
 	router := api.NewRouter(api.RouterConfig{
 		Catalog: catalog.NewRepository(pool, cfg.QueryTimeout),
 		Auth:    authService,
+		Cart:    cartService,
 		Ready: func() error {
 			ctx, cancel := context.WithTimeout(context.Background(), cfg.QueryTimeout)
 			defer cancel()
