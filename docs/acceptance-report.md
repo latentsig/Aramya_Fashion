@@ -1,6 +1,6 @@
 # Acceptance report — implementation in progress
 
-This report tracks verified milestones. It does not claim full e-commerce acceptance; payment processing, password reset/email verification, Google sign-in, administration, R2, PWA, Android, monitoring, and cloud deployment are not implemented.
+This report tracks verified milestones. It does not claim full e-commerce acceptance; payment processing, password reset/email verification, Google sign-in, order/shipping administration, new R2 uploads, PWA, Android, monitoring, and cloud deployment are not implemented.
 
 ## Verified repository/catalog/API milestone
 
@@ -115,6 +115,15 @@ This report tracks verified milestones. It does not claim full e-commerce accept
 - PostgreSQL 16 integration test passed against the local migrated database: verified parent SKU search, persisted quantity changes, reserved-stock rejection, stale-write conflict, concurrent update serialization (one success and one conflict), exactly two movement/audit rows, and cleanup of temporary product data.
 - `go test -count=1 ./...`, `go vet ./...`, frontend tests (19/19), and `npm run build` passed. OpenAPI YAML/reference validation passed. Build emitted upstream Zod annotation and existing large-chunk warnings.
 - Remaining: product/category editing, order review and fulfillment, media uploads to R2, customer quotation approval, email notifications, Razorpay, PWA, Android, monitoring, and GCP deployment.
+
+## Admin product and category catalog — verified locally
+
+- Added staff pages at `/admin/products` and `/admin/categories`, linked from the admin landing route and existing studio/inventory navigation.
+- Added role-protected Go endpoints to search/filter product records, read product variants, create/update products and variants, list/create/update categories, and select image keys already in catalog metadata.
+- Product/category mutations validate on the server, use PostgreSQL transactions and optimistic versions, record actor/request-attributed audit entries, and reject duplicate slugs/SKUs. Variants are updated or deactivated rather than deleted; category deactivation is blocked while active products remain. Public product queries exclude inactive categories.
+- Added and applied `0003_admin_catalog_version` on the disposable local PostgreSQL 16 instance. Guarded integration coverage creates and cleans temporary rows while checking create/update/archive, stale edit rejection, category safeguards, and audit rows.
+- Tests cover validation, admin route authorization, product creation UI (paise conversion and CSRF), and category deactivation context. Product/category images can only be selected from existing catalog references; the UI does not claim to upload to R2.
+- Remaining: product image upload to R2, order review/fulfillment/refunds, customer quotation approval, payment, PWA, Android, monitoring, GCP deployment, and full end-to-end acceptance. Full suite results will be recorded after the current verification run.
 
 ## Admin inventory management — implementation and verification in progress
 
