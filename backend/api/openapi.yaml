@@ -20,6 +20,137 @@ paths:
           description: Database is reachable
         '503':
           description: Database is unavailable
+  /api/v1/admin/categories:
+    get:
+      summary: List categories for administrators
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200':
+          description: Categories with visibility, optimistic version, and active product count
+          content:
+            application/json:
+              schema: { type: object, required: [data], properties: { data: { type: array, items: { $ref: '#/components/schemas/AdminCategory' } } } }
+        '401': { description: Administrator session is required }
+        '403': { description: Session does not have the admin role }
+    post:
+      summary: Create a category from the approved image library
+      security: [{ sessionCookie: [], csrfToken: [], csrfCookie: [] }]
+      parameters:
+        - { in: header, name: X-CSRF-Token, required: true, schema: { type: string } }
+        - { in: cookie, name: aramya_csrf, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CategoryWrite' }
+      responses:
+        '201': { description: Category created }
+        '400': { description: Invalid category fields }
+        '401': { description: Administrator session is required }
+        '403': { description: Admin role or CSRF validation failed }
+        '409': { description: Category slug is already in use }
+        '422': { description: Image is not in the approved asset library }
+  /api/v1/admin/categories/{id}:
+    patch:
+      summary: Update a category with optimistic concurrency
+      description: Deactivation is rejected while active products remain in the category. Categories are retained for historical order references.
+      security: [{ sessionCookie: [], csrfToken: [], csrfCookie: [] }]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+        - { in: header, name: X-CSRF-Token, required: true, schema: { type: string } }
+        - { in: cookie, name: aramya_csrf, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { allOf: [{ $ref: '#/components/schemas/CategoryWrite' }, { type: object, required: [expectedVersion], properties: { expectedVersion: { type: integer, minimum: 1 } } }] }
+      responses:
+        '200': { description: Category updated }
+        '400': { description: Invalid category fields }
+        '401': { description: Administrator session is required }
+        '403': { description: Admin role or CSRF validation failed }
+        '404': { description: Category not found }
+        '409': { description: Stale version, duplicate slug, or category still has active products }
+        '422': { description: Image is not in the approved asset library }
+  /api/v1/admin/catalog/image-options:
+    get:
+      summary: List existing approved catalog images
+      description: Returns image references already present in the catalog metadata. This endpoint does not upload files to R2.
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200':
+          description: Existing catalog image keys and labels
+          content:
+            application/json:
+              schema: { type: object, required: [data], properties: { data: { type: array, items: { $ref: '#/components/schemas/CatalogImageOption' } } } }
+        '401': { description: Administrator session is required }
+        '403': { description: Session does not have the admin role }
+  /api/v1/admin/products:
+    get:
+      summary: Search and list products for administrators
+      security: [{ sessionCookie: [] }]
+      parameters:
+        - { in: query, name: search, schema: { type: string, maxLength: 100 } }
+        - { in: query, name: status, schema: { type: string, enum: [draft, active, archived] } }
+        - { in: query, name: categoryId, schema: { type: string, format: uuid } }
+        - { in: query, name: limit, schema: { type: integer, minimum: 1, maximum: 50, default: 20 } }
+        - { in: query, name: offset, schema: { type: integer, minimum: 0, maximum: 100000, default: 0 } }
+      responses:
+        '200': { description: Filtered product page and pagination metadata }
+        '400': { description: Invalid filter }
+        '401': { description: Administrator session is required }
+        '403': { description: Session does not have the admin role }
+    post:
+      summary: Create a product and variants
+      description: Product image must reference an existing approved image key. Stock is managed separately through admin inventory.
+      security: [{ sessionCookie: [], csrfToken: [], csrfCookie: [] }]
+      parameters:
+        - { in: header, name: X-CSRF-Token, required: true, schema: { type: string } }
+        - { in: cookie, name: aramya_csrf, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProductWrite' }
+      responses:
+        '201': { description: Product and variants created }
+        '400': { description: Invalid product or variant fields }
+        '401': { description: Administrator session is required }
+        '403': { description: Admin role or CSRF validation failed }
+        '409': { description: Product SKU or slug is already in use }
+        '422': { description: Image key is not in the approved asset library }
+  /api/v1/admin/products/{id}:
+    get:
+      summary: Read a product and its variants for editing
+      security: [{ sessionCookie: [] }]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        '200': { description: Product detail and variants }
+        '400': { description: Invalid product ID }
+        '401': { description: Administrator session is required }
+        '403': { description: Session does not have the admin role }
+        '404': { description: Product not found }
+    patch:
+      summary: Update a product and its variants with optimistic concurrency
+      description: Existing variants must be supplied and are updated or deactivated, never deleted, preserving historical order references.
+      security: [{ sessionCookie: [], csrfToken: [], csrfCookie: [] }]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+        - { in: header, name: X-CSRF-Token, required: true, schema: { type: string } }
+        - { in: cookie, name: aramya_csrf, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { allOf: [{ $ref: '#/components/schemas/ProductWrite' }, { type: object, required: [expectedVersion], properties: { expectedVersion: { type: integer, minimum: 1 } } }] }
+      responses:
+        '200': { description: Product and variants updated }
+        '400': { description: Invalid product or variant fields }
+        '401': { description: Administrator session is required }
+        '403': { description: Admin role or CSRF validation failed }
+        '404': { description: Product not found }
+        '409': { description: Stale version, duplicate SKU or slug, or inactive category }
+        '422': { description: Image key is not in the approved asset library }
   /api/v1/admin/inventory:
     get:
       summary: List product variant inventory for administrators
@@ -595,6 +726,103 @@ components:
       in: cookie
       name: aramya_csrf
   schemas:
+    AdminCategory:
+      type: object
+      required: [id, slug, name, subtitle, imageKey, sortOrder, active, version, activeProductCount, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        slug: { type: string }
+        name: { type: string }
+        subtitle: { type: string }
+        imageKey: { type: string }
+        sortOrder: { type: integer }
+        active: { type: boolean }
+        version: { type: integer }
+        activeProductCount: { type: integer, minimum: 0 }
+        updatedAt: { type: string, format: date-time }
+    CategoryWrite:
+      type: object
+      required: [slug, name, subtitle, imageKey, sortOrder, active]
+      properties:
+        expectedVersion: { type: integer, minimum: 1 }
+        slug: { type: string, pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$', minLength: 2, maxLength: 120 }
+        name: { type: string, minLength: 2, maxLength: 120 }
+        subtitle: { type: string, maxLength: 300 }
+        imageKey: { type: string, minLength: 1, maxLength: 500 }
+        sortOrder: { type: integer, minimum: 0, maximum: 1000000 }
+        active: { type: boolean }
+    CatalogImageOption:
+      type: object
+      required: [imageKey, label]
+      properties:
+        imageKey: { type: string }
+        label: { type: string }
+    AdminProduct:
+      type: object
+      required: [id, version, sku, slug, name, description, categoryId, categoryName, pricePaise, currency, imageKey, status, inventoryPolicy, defaultVariantId, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        version: { type: integer }
+        sku: { type: string }
+        slug: { type: string }
+        name: { type: string }
+        description: { type: string }
+        categoryId: { type: string, format: uuid }
+        categoryName: { type: string }
+        pricePaise: { type: integer, minimum: 0 }
+        currency: { type: string, minLength: 3, maxLength: 3 }
+        imageKey: { type: string }
+        status: { type: string, enum: [draft, active, archived] }
+        inventoryPolicy: { type: string, enum: [tracked, made_to_order, untracked] }
+        defaultVariantId: { type: string, format: uuid }
+        updatedAt: { type: string, format: date-time }
+    AdminVariant:
+      type: object
+      required: [id, sku, optionName, optionValue, priceAdjustmentPaise, active, isDefault]
+      properties:
+        id: { type: string, format: uuid }
+        sku: { type: string }
+        optionName: { type: string }
+        optionValue: { type: string }
+        priceAdjustmentPaise: { type: integer }
+        active: { type: boolean }
+        isDefault: { type: boolean }
+    AdminProductDetail:
+      allOf:
+        - { $ref: '#/components/schemas/AdminProduct' }
+        - type: object
+          required: [variants]
+          properties:
+            variants: { type: array, items: { $ref: '#/components/schemas/AdminVariant' } }
+    ProductWrite:
+      type: object
+      required: [sku, slug, name, description, categoryId, pricePaise, imageKey, status, inventoryPolicy, variants]
+      properties:
+        expectedVersion: { type: integer, minimum: 1 }
+        sku: { type: string, pattern: '^[A-Za-z0-9][A-Za-z0-9_-]{1,63}$' }
+        slug: { type: string, pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$', minLength: 2, maxLength: 160 }
+        name: { type: string, minLength: 2, maxLength: 160 }
+        description: { type: string, maxLength: 5000 }
+        categoryId: { type: string, format: uuid }
+        pricePaise: { type: integer, minimum: 0, maximum: 100000000000 }
+        imageKey: { type: string, minLength: 1, maxLength: 500 }
+        status: { type: string, enum: [draft, active, archived] }
+        inventoryPolicy: { type: string, enum: [tracked, made_to_order, untracked] }
+        variants:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items:
+            type: object
+            required: [sku, optionName, optionValue, priceAdjustmentPaise, active, isDefault]
+            properties:
+              id: { type: string, format: uuid }
+              sku: { type: string, pattern: '^[A-Za-z0-9][A-Za-z0-9_-]{1,63}$' }
+              optionName: { type: string, minLength: 1, maxLength: 60 }
+              optionValue: { type: string, minLength: 1, maxLength: 100 }
+              priceAdjustmentPaise: { type: integer, minimum: -100000000000, maximum: 100000000000 }
+              active: { type: boolean }
+              isDefault: { type: boolean }
     Category:
       type: object
       required: [id, slug, name, subtitle, imageKey, sortOrder]

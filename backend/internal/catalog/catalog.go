@@ -96,7 +96,7 @@ func (r *Repository) ListProducts(ctx context.Context, category, search string, 
 		SELECT p.id::text, v.id::text, p.sku, p.slug, p.name, p.description, p.category_id::text,
 		       c.slug, c.name, p.price_paise, p.currency, p.image_key, p.status, p.inventory_policy
 		FROM products p JOIN categories c ON c.id = p.category_id JOIN product_variants v ON v.product_id=p.id AND v.is_default AND v.active
-		WHERE p.status = 'active'
+		WHERE p.status = 'active' AND c.active
 		  AND ($1::text IS NULL OR c.slug = $1)
 		  AND ($2::text IS NULL OR p.name ILIKE '%' || $2 || '%' OR coalesce(p.description, '') ILIKE '%' || $2 || '%')
 		ORDER BY p.name LIMIT $3 OFFSET $4`, categoryFilter, searchFilter, limit, offset)
@@ -122,7 +122,7 @@ func (r *Repository) GetProduct(ctx context.Context, slug string) (Product, erro
 		SELECT p.id::text, v.id::text, p.sku, p.slug, p.name, p.description, p.category_id::text,
 		       c.slug, c.name, p.price_paise, p.currency, p.image_key, p.status, p.inventory_policy
 		FROM products p JOIN categories c ON c.id = p.category_id JOIN product_variants v ON v.product_id=p.id AND v.is_default AND v.active
-		WHERE p.status = 'active' AND p.slug = $1`, slug)
+		WHERE p.status = 'active' AND c.active AND p.slug = $1`, slug)
 	product, err := scanProduct(row)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return Product{}, ErrNotFound

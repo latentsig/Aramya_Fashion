@@ -1,4 +1,4 @@
-import { Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import { SiteHeader } from '../components/layout/SiteHeader';
 import { SiteFooter } from '../components/layout/SiteFooter';
 import { HomePage } from './HomePage';
@@ -11,6 +11,7 @@ import { ProductPage } from './ProductPage';
 import { StudioRequestDialog } from '../components/appointments/StudioRequestDialog';
 import { AdminStudioPage } from '../features/admin/AdminStudioPage';
 import { AdminInventoryPage } from '../features/admin/AdminInventoryPage';
+import { AdminCategoriesPage, AdminProductsPage } from '../features/admin/AdminCatalogPages';
 
 export default function App() {
   return (
@@ -32,6 +33,9 @@ export default function App() {
         <Route path="/admin/appointments" element={<AdminStudioPage />} />
         <Route path="/admin/custom-orders" element={<AdminStudioPage />} />
         <Route path="/admin/inventory" element={<AdminInventoryPage />} />
+        <Route path="/admin" element={<Navigate to="/admin/products" replace />} />
+        <Route path="/admin/products" element={<AdminProductsPage />} />
+        <Route path="/admin/categories" element={<AdminCategoriesPage />} />
         <Route path="*" element={<main className="section-pad"><h1>Page not found</h1></main>} />
       </Routes>
       <SiteFooter />
