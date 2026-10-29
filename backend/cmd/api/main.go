@@ -72,6 +72,7 @@ func main() {
 		Orders:         orderRepository,
 		StudioRequests: appointments.NewRepository(pool, cfg.QueryTimeout),
 		AdminStudio:    admin.NewStudioRepository(pool, cfg.QueryTimeout),
+		AdminInventory: admin.NewInventoryRepository(pool, cfg.QueryTimeout),
 		AdminIdentity:  authService,
 		Ready: func() error {
 			ctx, cancel := context.WithTimeout(context.Background(), cfg.QueryTimeout)

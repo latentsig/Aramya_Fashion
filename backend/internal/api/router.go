@@ -24,6 +24,7 @@ type RouterConfig struct {
 	Orders                OrderReader
 	StudioRequests        StudioRequestWriter
 	AdminStudio           AdminStudioRepository
+	AdminInventory        AdminInventoryRepository
 	AdminIdentity         AdminIdentity
 	Ready                 func() error
 	AllowedOrigins        []string
@@ -65,6 +66,9 @@ func NewRouter(cfg RouterConfig) *gin.Engine {
 	}
 	if cfg.AdminStudio != nil {
 		registerAdminStudioRoutes(v1, cfg.AdminStudio, cfg.AdminIdentity, cfg.Logger)
+	}
+	if cfg.AdminInventory != nil {
+		registerAdminInventoryRoutes(v1, cfg.AdminInventory, cfg.AdminIdentity, cfg.Logger)
 	}
 	v1.GET("/categories", func(c *gin.Context) {
 		items, err := cfg.Catalog.ListCategories(c.Request.Context())
