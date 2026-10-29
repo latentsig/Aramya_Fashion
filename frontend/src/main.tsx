@@ -5,6 +5,7 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './app/App';
 import { CartProvider } from './features/cart/CartContext';
 import './styles/tokens.css';
+import './features/products/catalog.css';
 
 const queryClient = new QueryClient();
 

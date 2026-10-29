@@ -7,5 +7,8 @@ export default defineVitestConfig({
   test: { environment: 'jsdom' },
   server: {
     fs: { allow: ['..'] },
+    proxy: {
+      '/api': { target: 'http://127.0.0.1:8080', changeOrigin: true },
+    },
   },
 });
