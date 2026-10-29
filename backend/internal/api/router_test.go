@@ -44,6 +44,9 @@ func TestCorsAllowlist(t *testing.T) {
 	if got := response.Header().Get("Access-Control-Allow-Origin"); got != "https://shop.example" {
 		t.Fatalf("allow origin = %q", got)
 	}
+	if response.Header().Get("Access-Control-Allow-Credentials") != "true" {
+		t.Fatal("credentialed requests should be enabled for allowlisted origins")
+	}
 	request = httptest.NewRequest(http.MethodGet, "/health", nil)
 	request.Header.Set("Origin", "https://untrusted.example")
 	response = httptest.NewRecorder()

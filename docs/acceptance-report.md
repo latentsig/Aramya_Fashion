@@ -1,6 +1,6 @@
 # Acceptance report — implementation in progress
 
-This report tracks verified milestones. It does not claim full e-commerce acceptance; checkout, payments, authentication, administration, R2, PWA, Android, monitoring, and cloud deployment are not implemented.
+This report tracks verified milestones. It does not claim full e-commerce acceptance; checkout, payments, customer-facing auth UI, administration, R2, PWA, Android, monitoring, and cloud deployment are not implemented.
 
 ## Verified repository/catalog/API milestone
 
@@ -28,3 +28,11 @@ This report tracks verified milestones. It does not claim full e-commerce accept
 - Final Go checks: `go test ./...` and `go vet ./...` passed. OpenAPI YAML parsed as version 3.1.0 with five defined paths.
 - Final frontend checks: `npm test` passed (5/5); `npm run build` passed. Vite emitted two non-failing upstream Zod pure-annotation warnings.
 - No Razorpay, R2, Google OAuth, GCP, or Firebase credentials/accounts were used. No external paid infrastructure was provisioned.
+
+## Customer session API milestone — verified locally, awaiting PR
+
+- Added email/password registration and login using Argon2id password hashes, random opaque session cookies, session token hashing at rest, expiration, logout revocation, session rotation on authentication, and current-session lookup.
+- Added signed, expiring anonymous CSRF tokens and session-bound CSRF hashes; missing, forged, mismatched, and expired unsafe-request tokens are rejected. Authentication requests are rate limited, bodies are capped, and cookie-authenticated CORS stays restricted to the configured origin allowlist.
+- Integration-tested against the isolated PostgreSQL cluster: registration `201`, `/me` `200`, logout `204`, login `200`, wrong password `401`, missing/forged CSRF `403`. PostgreSQL confirmed session token hashes are 32 bytes and customer roles were assigned. Test API and PostgreSQL cluster were stopped afterward.
+- `go test -count=1 ./...`, `go vet ./...`, and `git diff --check` passed after the auth implementation. Frontend production build passed after the home custom-order photo was changed to a full-length catalog lehenga (`lehanga1.jpg`).
+- Integration coverage currently exercises the principal session/CSRF paths; Google OAuth, reset/verification delivery, and frontend login/account pages remain outstanding.
