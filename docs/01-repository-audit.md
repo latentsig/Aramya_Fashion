@@ -74,3 +74,11 @@ Validation evidence:
 - Windows sandbox denied esbuild child process creation (`spawn EPERM`); build/test/server commands succeeded when run outside the sandbox with approval.
 - Visual viewport screenshot capture remains incomplete: the browser surface returned a blank image during initial capture. Responsive screenshots and overflow checks are outstanding.
 - No API, database, credentials, deployment, R2, Razorpay or Android work has been performed in this milestone.
+
+## React storefront cutover
+
+The React/Vite app in `frontend/` is now the active storefront source. The original root HTML, CSS, JavaScript, and old `dist/` build have been moved intact to `legacy-storefront/` so they are no longer presented as the active site but remain available for parity reference. Product and campaign imagery is still served from the original `image assests/` directory via Vite's public directory configuration.
+
+The hero photo has been replaced by a muted, autoplaying, looping MP4 element. `image assests/campaign-loop.mp4` is a six-second seamless zoom animation generated from the repository's original gown photo; the original photo is used as the poster fallback. This is animated campaign photography, not newly recorded live-action footage.
+
+The local preview is intended to run from the `frontend/` directory with `npm run dev -- --host 0.0.0.0 --port 8000`. At cutover, the React root and MP4 both returned HTTP 200 from port 8000. Production build completed and copied the public assets into `frontend/dist/`. Re-run `npm test` and `npm run build` after subsequent edits.

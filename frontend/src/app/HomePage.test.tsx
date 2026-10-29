@@ -9,6 +9,7 @@ describe('home page', () => {
 
     expect(screen.getByRole('heading', { name: /wear the moment/i })).toBeTruthy();
     expect(screen.getByRole('heading', { name: /find your occasion/i })).toBeTruthy();
+    expect(document.querySelector('video.hero-video source')?.getAttribute('src')).toBe('/campaign-loop.mp4');
     expect(screen.getByRole('link', { name: /sarees a drape for every celebration/i })).toBeTruthy();
     expect(screen.getByRole('link', { name: /bridal & lehengas for the day you will always remember/i })).toBeTruthy();
     expect(screen.getByRole('link', { name: /occasionwear festive sets, gowns and shararas/i })).toBeTruthy();

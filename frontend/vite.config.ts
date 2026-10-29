@@ -8,4 +8,5 @@ export default defineVitestConfig({
   server: {
     fs: { allow: ['..'] },
   },
+  publicDir: '../image assests',
 });
