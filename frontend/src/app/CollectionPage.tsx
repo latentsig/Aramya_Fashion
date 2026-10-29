@@ -1,11 +1,19 @@
 import { Link, useParams } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { ProductCard } from '../components/catalog/ProductCard';
 import { categories, products } from '../features/products/catalog';
+import { fetchCatalogProducts } from '../features/products/api';
 
 export function CollectionPage() {
   const { slug = '' } = useParams();
   const category = categories.find((item) => item.id === slug);
-  const collectionProducts = products.filter((product) => product.category === slug);
+  const catalogQuery = useQuery({
+    queryKey: ['catalog-products', slug],
+    queryFn: ({ signal }) => fetchCatalogProducts(slug, signal),
+    staleTime: 60_000,
+    retry: 1,
+  });
+  const collectionProducts = catalogQuery.data ?? products.filter((product) => product.category === slug);
 
   if (!category) return <main className="section-pad"><h1>Collection not found</h1><Link to="/collections">Explore all collections ↗</Link></main>;
 
@@ -20,6 +28,7 @@ export function CollectionPage() {
       </section>
       <section className="category-products section-pad">
         <div className="section-heading"><div><p className="eyebrow">THE {category.title.toUpperCase()} EDIT</p><h2>Find the one <em>you love.</em></h2></div><Link className="text-link" to="/collections">All collections ↗</Link></div>
+        {catalogQuery.isError && <p role="status" className="catalog-status">Live catalog is unavailable. Showing the original Aramya catalog while the API reconnects.</p>}
         <div className="product-grid">{collectionProducts.map((product) => <ProductCard key={product.name} product={product} />)}</div>
       </section>
     </main>

@@ -68,8 +68,8 @@ func (r *Repository) ListCategories(ctx context.Context) ([]Category, error) {
 func (r *Repository) ListProducts(ctx context.Context, category, search string, limit, offset int) ([]Product, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.queryTimeout)
 	defer cancel()
-	category = blankToNil(category)
-	search = blankToNil(search)
+	categoryFilter := blankToNil(category)
+	searchFilter := blankToNil(search)
 	rows, err := r.pool.Query(ctx, `
 		SELECT p.id::text, p.sku, p.slug, p.name, p.description, p.category_id::text,
 		       c.slug, c.name, p.price_paise, p.currency, p.image_key, p.status, p.inventory_policy
@@ -77,7 +77,7 @@ func (r *Repository) ListProducts(ctx context.Context, category, search string, 
 		WHERE p.status = 'active'
 		  AND ($1::text IS NULL OR c.slug = $1)
 		  AND ($2::text IS NULL OR p.name ILIKE '%' || $2 || '%' OR coalesce(p.description, '') ILIKE '%' || $2 || '%')
-		ORDER BY p.name LIMIT $3 OFFSET $4`, category, search, limit, offset)
+		ORDER BY p.name LIMIT $3 OFFSET $4`, categoryFilter, searchFilter, limit, offset)
 	if err != nil {
 		return nil, err
 	}
