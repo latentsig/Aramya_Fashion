@@ -10,20 +10,25 @@ import (
 	"unicode/utf8"
 
 	"github.com/gin-gonic/gin"
+	"github.com/latentsig/aramya-fashion/backend/internal/auth"
 	"github.com/latentsig/aramya-fashion/backend/internal/catalog"
 )
 
 type RouterConfig struct {
-	Catalog        *catalog.Repository
-	Ready          func() error
-	AllowedOrigins []string
-	Logger         *slog.Logger
+	Catalog               *catalog.Repository
+	Auth                  *auth.Service
+	Ready                 func() error
+	AllowedOrigins        []string
+	SessionCookieSecure   bool
+	SessionCookieSameSite string
+	CSRFSecret            []byte
+	Logger                *slog.Logger
 }
 
 func NewRouter(cfg RouterConfig) *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
-	router.Use(requestID(), accessLog(cfg.Logger), gin.Recovery(), cors(cfg.AllowedOrigins))
+	router.Use(requestID(), accessLog(cfg.Logger), gin.Recovery(), cors(cfg.AllowedOrigins), newRateLimiter(120, time.Minute).Middleware())
 	router.GET("/health", func(c *gin.Context) { c.JSON(http.StatusOK, gin.H{"status": "ok"}) })
 	router.GET("/ready", func(c *gin.Context) {
 		if cfg.Ready == nil || cfg.Ready() != nil {
@@ -34,6 +39,10 @@ func NewRouter(cfg RouterConfig) *gin.Engine {
 	})
 
 	v1 := router.Group("/api/v1")
+	if cfg.Auth != nil {
+		v1.Use(csrfGuard(cfg.Auth, cfg.CSRFSecret))
+		registerAuthRoutes(v1, cfg.Auth, cfg.CSRFSecret, cfg.SessionCookieSecure, cookieSameSite(cfg.SessionCookieSameSite), cfg.Logger)
+	}
 	v1.GET("/categories", func(c *gin.Context) {
 		items, err := cfg.Catalog.ListCategories(c.Request.Context())
 		if err != nil {
@@ -122,6 +131,7 @@ func cors(origins []string) gin.HandlerFunc {
 				c.Header("Vary", "Origin")
 				c.Header("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS")
 				c.Header("Access-Control-Allow-Headers", "Content-Type, X-Request-ID, X-CSRF-Token, Idempotency-Key")
+				c.Header("Access-Control-Allow-Credentials", "true")
 			}
 			if c.Request.Method == http.MethodOptions {
 				c.AbortWithStatus(http.StatusNoContent)

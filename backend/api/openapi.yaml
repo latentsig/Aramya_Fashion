@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Aramya Fashion API
   version: 0.1.0
-  description: Initial database-backed catalog API. Checkout and customer operations are not implemented.
+  description: Database-backed catalog API with initial customer session endpoints. Cart, checkout, and fulfillment operations are not implemented.
 servers:
   - url: http://localhost:18080
 paths:
@@ -36,6 +36,78 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Category'
+  /api/v1/auth/csrf:
+    get:
+      summary: Create or read the browser CSRF token
+      responses:
+        '200':
+          description: CSRF token cookie is set and token is returned
+  /api/v1/auth/register:
+    post:
+      summary: Register a customer and create a session
+      parameters:
+        - in: cookie
+          name: aramya_csrf
+          required: true
+          schema: { type: string }
+        - in: header
+          name: X-CSRF-Token
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, displayName]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string, minLength: 12, maxLength: 128 }
+                displayName: { type: string, minLength: 1, maxLength: 120 }
+      responses:
+        '201': { description: Customer registered; session is set in an HTTP-only cookie }
+        '400': { description: Invalid registration input }
+        '409': { description: Email already registered }
+  /api/v1/auth/login:
+    post:
+      summary: Authenticate with email and password
+      parameters:
+        - in: cookie
+          name: aramya_csrf
+          required: true
+          schema: { type: string }
+        - in: header
+          name: X-CSRF-Token
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string, maxLength: 128 }
+      responses:
+        '200': { description: Authenticated; rotated HTTP-only session cookie is set }
+        '401': { description: Email or password is incorrect }
+  /api/v1/auth/logout:
+    post:
+      summary: Revoke the current customer session
+      security: [{ sessionCookie: [], csrfToken: [], csrfCookie: [] }]
+      responses:
+        '204': { description: Session revoked and cookies cleared }
+        '403': { description: CSRF token rejected }
+  /api/v1/auth/me:
+    get:
+      summary: Read the current customer identity
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200': { description: Current customer }
+        '401': { description: Session is missing, expired, or revoked }
   /api/v1/products:
     get:
       summary: Search and paginate active products
@@ -94,6 +166,19 @@ paths:
         '404':
           description: Product not found
 components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: aramya_session
+    csrfToken:
+      type: apiKey
+      in: header
+      name: X-CSRF-Token
+    csrfCookie:
+      type: apiKey
+      in: cookie
+      name: aramya_csrf
   schemas:
     Category:
       type: object
@@ -105,6 +190,13 @@ components:
         subtitle: { type: string }
         imageKey: { type: string }
         sortOrder: { type: integer }
+    User:
+      type: object
+      required: [id, email, displayName]
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string, format: email }
+        displayName: { type: string }
     Product:
       type: object
       required: [id, sku, slug, name, description, categoryId, categorySlug, categoryName, pricePaise, currency, imageKey, status, inventoryPolicy]

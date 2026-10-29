@@ -13,6 +13,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/latentsig/aramya-fashion/backend/internal/api"
+	"github.com/latentsig/aramya-fashion/backend/internal/auth"
 	"github.com/latentsig/aramya-fashion/backend/internal/catalog"
 	"github.com/latentsig/aramya-fashion/backend/internal/config"
 )
@@ -37,15 +38,25 @@ func main() {
 	}
 	defer pool.Close()
 
+	authService, err := auth.NewService(pool, cfg.SessionTTL, cfg.QueryTimeout)
+	if err != nil {
+		logger.Error("auth_initialization_failed", "error_type", fmt.Sprintf("%T", err))
+		os.Exit(1)
+	}
+
 	router := api.NewRouter(api.RouterConfig{
 		Catalog: catalog.NewRepository(pool, cfg.QueryTimeout),
+		Auth:    authService,
 		Ready: func() error {
 			ctx, cancel := context.WithTimeout(context.Background(), cfg.QueryTimeout)
 			defer cancel()
 			return pool.Ping(ctx)
 		},
-		AllowedOrigins: cfg.AllowedOrigins,
-		Logger:         logger,
+		AllowedOrigins:        cfg.AllowedOrigins,
+		SessionCookieSecure:   cfg.SessionCookieSecure,
+		SessionCookieSameSite: cfg.SessionCookieSameSite,
+		CSRFSecret:            cfg.CSRFSecret,
+		Logger:                logger,
 	})
 	server := &http.Server{Addr: cfg.Address, Handler: router, ReadHeaderTimeout: 5 * time.Second}
 
