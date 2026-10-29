@@ -7,6 +7,7 @@ type CartValue = {
   add: (product: Product) => Promise<void>;
   setQuantity: (variantId: string, quantity: number) => Promise<void>;
   remove: (variantId: string) => Promise<void>;
+  refresh: () => Promise<void>;
   count: number;
   subtotal: number;
   loading: boolean;
@@ -111,7 +112,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const line = snapshot.lines.find((item) => item.variantId === variantId);
       return line ? apply(() => requestCart(`/items/${line.id}`, { method: 'DELETE' })) : Promise.resolve();
     },
-  }), [lines, snapshot, loading, error]);
+    refresh,
+  }), [lines, snapshot, loading, error, refresh]);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }

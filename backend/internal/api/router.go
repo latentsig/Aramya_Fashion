@@ -13,12 +13,14 @@ import (
 	"github.com/latentsig/aramya-fashion/backend/internal/auth"
 	"github.com/latentsig/aramya-fashion/backend/internal/cart"
 	"github.com/latentsig/aramya-fashion/backend/internal/catalog"
+	"github.com/latentsig/aramya-fashion/backend/internal/checkout"
 )
 
 type RouterConfig struct {
 	Catalog               *catalog.Repository
 	Auth                  *auth.Service
 	Cart                  *cart.Service
+	Checkout              *checkout.Service
 	Ready                 func() error
 	AllowedOrigins        []string
 	SessionCookieSecure   bool
@@ -47,6 +49,9 @@ func NewRouter(cfg RouterConfig) *gin.Engine {
 	}
 	if cfg.Cart != nil {
 		registerCartRoutes(v1, cfg.Cart, cfg.Auth, cfg.SessionCookieSecure, cookieSameSite(cfg.SessionCookieSameSite), cfg.Logger)
+	}
+	if cfg.Checkout != nil && cfg.Cart != nil {
+		registerCheckoutRoutes(v1, cfg.Checkout, cfg.Cart, cfg.Auth, cfg.SessionCookieSecure, cookieSameSite(cfg.SessionCookieSameSite), cfg.Logger)
 	}
 	v1.GET("/categories", func(c *gin.Context) {
 		items, err := cfg.Catalog.ListCategories(c.Request.Context())

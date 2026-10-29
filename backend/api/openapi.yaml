@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Aramya Fashion API
   version: 0.1.0
-  description: Database-backed catalog API with initial customer session endpoints. Cart, checkout, and fulfillment operations are not implemented.
+  description: Database-backed catalog, customer session, persistent cart, provisional quote, and pending-payment order APIs. Payment and fulfillment integrations remain unimplemented.
 servers:
   - url: http://localhost:18080
 paths:
@@ -167,6 +167,65 @@ paths:
       responses:
         '200': { description: Updated cart }
         '404': { description: Cart line was not found }
+  /api/v1/checkout/quote:
+    post:
+      summary: Recalculate the current cart using database prices
+      parameters:
+        - in: cookie
+          name: aramya_csrf
+          required: true
+          schema: { type: string }
+        - in: header
+          name: X-CSRF-Token
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Provisional server-calculated quote; payment availability is reported explicitly }
+        '409': { description: Cart is empty or stock is no longer available }
+  /api/v1/checkout/orders:
+    post:
+      summary: Create an idempotent pending-payment order snapshot from the current cart
+      parameters:
+        - in: header
+          name: Idempotency-Key
+          required: true
+          schema: { type: string, minLength: 16, maxLength: 128 }
+        - in: cookie
+          name: aramya_csrf
+          required: true
+          schema: { type: string }
+        - in: header
+          name: X-CSRF-Token
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, phone, address]
+              properties:
+                email: { type: string, format: email }
+                phone: { type: string, minLength: 7, maxLength: 32 }
+                customerNote: { type: string, maxLength: 1000 }
+                address:
+                  type: object
+                  required: [recipientName, phone, line1, city, region, postalCode, countryCode]
+                  properties:
+                    recipientName: { type: string, maxLength: 120 }
+                    phone: { type: string, minLength: 7, maxLength: 32 }
+                    line1: { type: string, maxLength: 200 }
+                    line2: { type: string, maxLength: 200 }
+                    city: { type: string, maxLength: 120 }
+                    region: { type: string, maxLength: 120 }
+                    postalCode: { type: string, minLength: 3, maxLength: 24 }
+                    countryCode: { type: string, pattern: '^[A-Z]{2}$' }
+      responses:
+        '201': { description: Order saved in pending_payment state; paymentAvailable is false until a provider is configured }
+        '200': { description: Idempotent replay of the original order response }
+        '400': { description: Invalid checkout details or idempotency key }
+        '409': { description: Empty cart, insufficient stock, or idempotency conflict }
         '409': { description: Insufficient stock }
     delete:
       summary: Remove a cart line
