@@ -9,7 +9,8 @@ describe('home page', () => {
 
     expect(screen.getByRole('heading', { name: /wear the moment/i })).toBeTruthy();
     expect(screen.getByRole('heading', { name: /find your occasion/i })).toBeTruthy();
-    expect(document.querySelector('video.hero-video source')?.getAttribute('src')).toBe('/media/campaign-loop.mp4');
+    expect(document.querySelector('video.hero-video source')?.getAttribute('src')).toBe('https://videos.pexels.com/video-files/9347912/9347912-uhd_2160_3840_24fps.mp4');
+    expect(document.querySelector('video.hero-video')?.getAttribute('poster')).toBe('/media/lehanga2.jpg');
     expect(screen.getByRole('link', { name: /sarees a drape for every celebration/i })).toBeTruthy();
     expect(screen.getByRole('link', { name: /bridal & lehengas for the day you will always remember/i })).toBeTruthy();
     expect(screen.getByRole('link', { name: /occasionwear festive sets, gowns and shararas/i })).toBeTruthy();
