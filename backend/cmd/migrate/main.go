@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -20,13 +21,15 @@ func main() {
 }
 
 func run() error {
+	downVersion := flag.String("down", "", "roll back the latest applied migration version only")
+	flag.Parse()
 	databaseURL := os.Getenv("DATABASE_URL")
 	if databaseURL == "" {
 		return fmt.Errorf("DATABASE_URL is required")
 	}
 	dir := os.Getenv("MIGRATIONS_DIR")
 	if dir == "" {
-		dir = filepath.Join("..", "..", "database", "migrations")
+		dir = filepath.Join("..", "database", "migrations")
 	}
 	files, err := filepath.Glob(filepath.Join(dir, "*.up.sql"))
 	if err != nil {
@@ -48,6 +51,9 @@ func run() error {
 	}
 	if _, err := pool.Exec(ctx, `CREATE TABLE IF NOT EXISTS schema_migrations (version text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())`); err != nil {
 		return fmt.Errorf("prepare migration ledger: %w", err)
+	}
+	if *downVersion != "" {
+		return rollbackLatest(ctx, pool, dir, *downVersion)
 	}
 	for _, file := range files {
 		version := strings.TrimSuffix(filepath.Base(file), ".up.sql")
@@ -78,5 +84,36 @@ func run() error {
 		}
 		fmt.Printf("Applied %s\n", version)
 	}
+	return nil
+}
+
+func rollbackLatest(ctx context.Context, pool *pgxpool.Pool, dir, requested string) error {
+	var latest string
+	if err := pool.QueryRow(ctx, `SELECT version FROM schema_migrations ORDER BY applied_at DESC, version DESC LIMIT 1`).Scan(&latest); err != nil {
+		return fmt.Errorf("find latest applied migration: %w", err)
+	}
+	if latest != requested {
+		return fmt.Errorf("only the latest migration (%s) can be rolled back; requested %s", latest, requested)
+	}
+	file := filepath.Join(dir, latest+".down.sql")
+	sql, err := os.ReadFile(file)
+	if err != nil {
+		return fmt.Errorf("read rollback %s: %w", latest, err)
+	}
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("begin rollback %s: %w", latest, err)
+	}
+	defer func() { _ = tx.Rollback(context.Background()) }()
+	if _, err := tx.Exec(ctx, string(sql)); err != nil {
+		return fmt.Errorf("roll back %s: %w", latest, err)
+	}
+	if _, err := tx.Exec(ctx, `DELETE FROM schema_migrations WHERE version=$1`, latest); err != nil {
+		return fmt.Errorf("update migration ledger: %w", err)
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("commit rollback %s: %w", latest, err)
+	}
+	fmt.Printf("Rolled back %s\n", latest)
 	return nil
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -31,7 +32,7 @@ func main() {
 	}
 	cancelConnect()
 	if err != nil {
-		logger.Error("database_unavailable", "error", err)
+		logger.Error("database_unavailable", "error_type", fmt.Sprintf("%T", err))
 		os.Exit(1)
 	}
 	defer pool.Close()
@@ -59,7 +60,7 @@ func main() {
 	select {
 	case err := <-serverErrors:
 		if !errors.Is(err, http.ErrServerClosed) {
-			logger.Error("api_stopped", "error", err)
+			logger.Error("api_stopped", "error_type", fmt.Sprintf("%T", err))
 			os.Exit(1)
 		}
 	case <-stopCtx.Done():
