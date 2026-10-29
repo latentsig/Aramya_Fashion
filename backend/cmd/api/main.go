@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/latentsig/aramya-fashion/backend/internal/admin"
 	"github.com/latentsig/aramya-fashion/backend/internal/api"
 	"github.com/latentsig/aramya-fashion/backend/internal/appointments"
 	"github.com/latentsig/aramya-fashion/backend/internal/auth"
@@ -70,6 +71,8 @@ func main() {
 		Checkout:       checkoutService,
 		Orders:         orderRepository,
 		StudioRequests: appointments.NewRepository(pool, cfg.QueryTimeout),
+		AdminStudio:    admin.NewStudioRepository(pool, cfg.QueryTimeout),
+		AdminIdentity:  authService,
 		Ready: func() error {
 			ctx, cancel := context.WithTimeout(context.Background(), cfg.QueryTimeout)
 			defer cancel()

@@ -9,6 +9,7 @@ import { AccountPage, LoginPage, RegisterPage } from './AuthPages';
 import { AccountOrdersPage, OrderDetailPage } from './OrdersPages';
 import { ProductPage } from './ProductPage';
 import { StudioRequestDialog } from '../components/appointments/StudioRequestDialog';
+import { AdminStudioPage } from '../features/admin/AdminStudioPage';
 
 export default function App() {
   return (
@@ -27,6 +28,8 @@ export default function App() {
         <Route path="/account" element={<AccountPage />} />
         <Route path="/account/orders" element={<AccountOrdersPage />} />
         <Route path="/account/orders/:id" element={<OrderDetailPage />} />
+        <Route path="/admin/appointments" element={<AdminStudioPage />} />
+        <Route path="/admin/custom-orders" element={<AdminStudioPage />} />
         <Route path="*" element={<main className="section-pad"><h1>Page not found</h1></main>} />
       </Routes>
       <SiteFooter />

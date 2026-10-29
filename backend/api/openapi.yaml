@@ -20,6 +20,117 @@ paths:
           description: Database is reachable
         '503':
           description: Database is unavailable
+  /api/v1/admin/appointments:
+    get:
+      summary: List appointments for administrators
+      description: Searches the staff request queue. Requires an authenticated session with the admin role.
+      security:
+        - sessionCookie: []
+      parameters:
+        - { in: query, name: status, schema: { type: string, enum: [requested, confirmed, completed, cancelled] } }
+        - { in: query, name: search, schema: { type: string, maxLength: 100 } }
+        - { in: query, name: limit, schema: { type: integer, minimum: 1, maximum: 50, default: 20 } }
+        - { in: query, name: offset, schema: { type: integer, minimum: 0, maximum: 100000, default: 0 } }
+      responses:
+        '200':
+          description: Appointment request page
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, pagination]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/AdminAppointment' }
+                  pagination: { $ref: '#/components/schemas/Pagination' }
+        '401': { description: Administrator session is required }
+        '403': { description: Session does not have the admin role }
+  /api/v1/admin/appointments/{id}:
+    patch:
+      summary: Change an appointment status
+      description: Applies the appointment transition matrix and writes an audit log in the same transaction.
+      security:
+        - sessionCookie: []
+          csrfToken: []
+          csrfCookie: []
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+        - { in: header, name: X-CSRF-Token, required: true, schema: { type: string } }
+        - { in: cookie, name: aramya_csrf, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [expectedStatus, status]
+              properties:
+                expectedStatus: { type: string, enum: [requested, confirmed, completed, cancelled] }
+                status: { type: string, enum: [confirmed, completed, cancelled] }
+      responses:
+        '200': { description: Appointment and audit event persisted }
+        '400': { description: Invalid transition or request ID }
+        '401': { description: Administrator session is required }
+        '403': { description: Admin role or CSRF validation failed }
+        '404': { description: Appointment was not found }
+        '409': { description: Request is stale or transition is no longer allowed }
+  /api/v1/admin/custom-order-requests:
+    get:
+      summary: List made-to-order requests for administrators
+      description: Searches requests requiring staff review. Requires an authenticated session with the admin role.
+      security:
+        - sessionCookie: []
+      parameters:
+        - { in: query, name: status, schema: { type: string, enum: [requested, reviewing, fitting, quoted, awaiting_approval, approved, in_progress, completed, declined, cancelled] } }
+        - { in: query, name: search, schema: { type: string, maxLength: 100 } }
+        - { in: query, name: limit, schema: { type: integer, minimum: 1, maximum: 50, default: 20 } }
+        - { in: query, name: offset, schema: { type: integer, minimum: 0, maximum: 100000, default: 0 } }
+      responses:
+        '200':
+          description: Custom order request page
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, pagination]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/AdminCustomOrderRequest' }
+                  pagination: { $ref: '#/components/schemas/Pagination' }
+        '401': { description: Administrator session is required }
+        '403': { description: Session does not have the admin role }
+  /api/v1/admin/custom-order-requests/{id}:
+    patch:
+      summary: Advance a made-to-order request or issue a quotation
+      description: Enforces fitting and quote transitions. Customer approval is not available through this staff route. Status changes and audit events are transactional.
+      security:
+        - sessionCookie: []
+          csrfToken: []
+          csrfCookie: []
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+        - { in: header, name: X-CSRF-Token, required: true, schema: { type: string } }
+        - { in: cookie, name: aramya_csrf, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [expectedStatus, status]
+              properties:
+                expectedStatus: { type: string, enum: [requested, reviewing, fitting, quoted, awaiting_approval] }
+                status: { type: string, enum: [reviewing, fitting, quoted, awaiting_approval, declined, cancelled] }
+                quotationPaise: { type: integer, minimum: 1, description: Required only when status is quoted; amount in integer paise. }
+      responses:
+        '200': { description: Request and audit event persisted }
+        '400': { description: Invalid transition or quotation }
+        '401': { description: Administrator session is required }
+        '403': { description: Admin role or CSRF validation failed }
+        '404': { description: Request was not found }
+        '409': { description: Request is stale or transition is no longer allowed }
   /api/v1/categories:
     get:
       summary: List active catalog categories
@@ -521,6 +632,45 @@ components:
         id: { type: string, format: uuid }
         status: { type: string, const: requested }
         createdAt: { type: string, format: date-time }
+    Pagination:
+      type: object
+      required: [limit, offset, count, hasMore]
+      properties:
+        limit: { type: integer, minimum: 1 }
+        offset: { type: integer, minimum: 0 }
+        count: { type: integer, minimum: 0 }
+        hasMore: { type: boolean }
+    AdminAppointment:
+      type: object
+      required: [id, name, email, phone, preferredAt, interest, note, status, createdAt, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        email: { type: string }
+        phone: { type: string }
+        preferredAt: { type: [string, 'null'], format: date-time }
+        interest: { type: string }
+        note: { type: string }
+        status: { type: string, enum: [requested, confirmed, completed, cancelled] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    AdminCustomOrderRequest:
+      type: object
+      required: [id, name, email, phone, garmentType, occasion, requirements, measurements, quotationPaise, currency, status, createdAt, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        email: { type: string }
+        phone: { type: string }
+        garmentType: { type: string }
+        occasion: { type: string }
+        requirements: { type: string }
+        measurements: { type: object, additionalProperties: true }
+        quotationPaise: { type: [integer, 'null'], minimum: 0 }
+        currency: { type: string, minLength: 3, maxLength: 3 }
+        status: { type: string, enum: [requested, reviewing, fitting, quoted, awaiting_approval, approved, in_progress, completed, declined, cancelled] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
     OrderSummary:
       type: object
       required: [id, orderNumber, status, currency, subtotalPaise, taxPaise, shippingPaise, discountPaise, totalPaise, createdAt]
