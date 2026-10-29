@@ -63,6 +63,11 @@ func main() {
 		logger.Error("orders_initialization_failed", "error_type", fmt.Sprintf("%T", err))
 		os.Exit(1)
 	}
+	adminOrderRepository, err := admin.NewOrderRepository(pool, cfg.QueryTimeout)
+	if err != nil {
+		logger.Error("admin_orders_initialization_failed", "error_type", fmt.Sprintf("%T", err))
+		os.Exit(1)
+	}
 
 	router := api.NewRouter(api.RouterConfig{
 		Catalog:        catalog.NewRepository(pool, cfg.QueryTimeout),
@@ -70,6 +75,7 @@ func main() {
 		Cart:           cartService,
 		Checkout:       checkoutService,
 		Orders:         orderRepository,
+		AdminOrders:    adminOrderRepository,
 		StudioRequests: appointments.NewRepository(pool, cfg.QueryTimeout),
 		AdminStudio:    admin.NewStudioRepository(pool, cfg.QueryTimeout),
 		AdminInventory: admin.NewInventoryRepository(pool, cfg.QueryTimeout),

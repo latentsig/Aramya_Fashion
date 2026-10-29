@@ -123,12 +123,12 @@ This report tracks verified milestones. It does not claim full e-commerce accept
 - Product/category mutations validate on the server, use PostgreSQL transactions and optimistic versions, record actor/request-attributed audit entries, and reject duplicate slugs/SKUs. Variants are updated or deactivated rather than deleted; category deactivation is blocked while active products remain. Public product queries exclude inactive categories.
 - Added and applied `0003_admin_catalog_version` on the disposable local PostgreSQL 16 instance. Guarded integration coverage creates and cleans temporary rows while checking create/update/archive, stale edit rejection, category safeguards, and audit rows.
 - Tests cover validation, admin route authorization, product creation UI (paise conversion and CSRF), and category deactivation context. Product/category images can only be selected from existing catalog references; the UI does not claim to upload to R2.
-- Remaining: product image upload to R2, order review/fulfillment/refunds, customer quotation approval, payment, PWA, Android, monitoring, GCP deployment, and full end-to-end acceptance. Full suite results will be recorded after the current verification run.
+- Remaining: product image upload to R2, customer quotation approval, payment, PWA, Android, monitoring, GCP deployment, and full end-to-end acceptance.
 
-## Admin inventory management — implementation and verification in progress
+## Admin order review and fulfillment — implementation in progress
 
-- Added an admin role-gated inventory list for product variants, including on-hand, reserved, and available quantities with search and pagination.
-- Added an optimistic stock correction for tracked variants only. A transaction locks the variant, rejects stale counts and reductions below reservations, then records a movement and audit entry atomically.
-- Added a responsive staff inventory page and documented the endpoint in OpenAPI.
-- Automated tests and live PostgreSQL checks are part of this milestone's final verification; results will be recorded after execution.
-- Remaining: product/category editing, media uploads, order review and fulfillment, and full production e-commerce acceptance.
+- Added an admin order search/list and detail endpoint with customer contact/shipping details, line-item snapshots, status history, latest payment/refund summaries, and shipment tracking details.
+- Added an optimistic, audited fulfillment transition endpoint. It does not permit staff to mark an order paid/refunded. Pending-payment cancellation rejects unresolved payment attempts and releases active inventory reservations. Shipping requires carrier and tracking number.
+- Added the responsive `/admin/orders` page with status/search filters, order detail, payment/refund read-only status, tracking, history and fulfillment actions. The UI uses the admin session, CSRF-protected updates, and real API responses.
+- Unit, route, UI and guarded PostgreSQL integration checks have been added. Final full-suite and OpenAPI verification will be recorded after execution.
+- Remaining: Razorpay verification/webhooks and refund initiation, order analytics summary, R2, PWA, Android, monitoring, deployment, and full end-to-end acceptance.

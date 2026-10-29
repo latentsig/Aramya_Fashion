@@ -20,6 +20,64 @@ paths:
           description: Database is reachable
         '503':
           description: Database is unavailable
+  /api/v1/admin/orders:
+    get:
+      summary: Search orders for administrators
+      description: Includes customer contact, latest payment/refund summary, and shipment status.
+      security: [{ sessionCookie: [] }]
+      parameters:
+        - { in: query, name: search, schema: { type: string, maxLength: 100 }, description: Matches order number, customer, email, or phone }
+        - { in: query, name: status, schema: { type: string, enum: [pending_payment, paid, confirmed, processing, ready_to_ship, shipped, delivered, cancelled, refund_pending, refunded] } }
+        - { in: query, name: limit, schema: { type: integer, minimum: 1, maximum: 50, default: 20 } }
+        - { in: query, name: offset, schema: { type: integer, minimum: 0, maximum: 100000, default: 0 } }
+      responses:
+        '200':
+          description: Order page and pagination information
+          content:
+            application/json:
+              schema: { type: object, required: [data, pagination], properties: { data: { type: array, items: { $ref: '#/components/schemas/AdminOrder' } }, pagination: { $ref: '#/components/schemas/Pagination' } } }
+        '400': { description: Invalid filter or pagination }
+        '401': { description: Administrator session is required }
+        '403': { description: Session does not have the admin role }
+  /api/v1/admin/orders/{id}:
+    get:
+      summary: Read order details for administrators
+      security: [{ sessionCookie: [] }]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        '200':
+          description: Order detail, customer shipping details, items, payment/refund summaries, shipment, and history
+          content:
+            application/json:
+              schema: { type: object, required: [data], properties: { data: { $ref: '#/components/schemas/AdminOrderDetail' } } }
+        '400': { description: Invalid order ID }
+        '401': { description: Administrator session is required }
+        '403': { description: Session does not have the admin role }
+        '404': { description: Order not found }
+    patch:
+      summary: Advance an order through an allowed fulfillment transition
+      description: Uses expectedVersion and an audit reason. Staff cannot set payment or refund states. Pending-payment cancellation is rejected when an unresolved payment attempt exists. Shipping requires a carrier and tracking number.
+      security: [{ sessionCookie: [], csrfToken: [], csrfCookie: [] }]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+        - { in: header, name: X-CSRF-Token, required: true, schema: { type: string } }
+        - { in: cookie, name: aramya_csrf, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AdminOrderUpdate' }
+      responses:
+        '200':
+          description: Order, shipment, status event, and audit entry updated atomically
+          content:
+            application/json:
+              schema: { type: object, required: [data], properties: { data: { $ref: '#/components/schemas/AdminOrderDetail' } } }
+        '400': { description: Invalid transition fields or reason }
+        '401': { description: Administrator session is required }
+        '403': { description: Admin role or CSRF validation failed }
+        '404': { description: Order not found }
+        '409': { description: Stale order version, forbidden transition, or unresolved payment attempt }
   /api/v1/admin/categories:
     get:
       summary: List categories for administrators
@@ -726,6 +784,75 @@ components:
       in: cookie
       name: aramya_csrf
   schemas:
+    AdminOrder:
+      type: object
+      required: [id, version, orderNumber, status, currency, subtotalPaise, taxPaise, shippingPaise, discountPaise, totalPaise, customerName, customerEmail, customerPhone, paymentStatus, refundStatus, refundedPaise, shipmentStatus, shipmentProvider, trackingNumber, trackingUrl, createdAt, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        version: { type: integer, minimum: 1 }
+        orderNumber: { type: string }
+        status: { type: string, enum: [pending_payment, paid, confirmed, processing, ready_to_ship, shipped, delivered, cancelled, refund_pending, refunded] }
+        currency: { type: string, minLength: 3, maxLength: 3 }
+        subtotalPaise: { type: integer, minimum: 0 }
+        taxPaise: { type: integer, minimum: 0 }
+        shippingPaise: { type: integer, minimum: 0 }
+        discountPaise: { type: integer, minimum: 0 }
+        totalPaise: { type: integer, minimum: 0 }
+        customerName: { type: string }
+        customerEmail: { type: string }
+        customerPhone: { type: string }
+        paymentStatus: { type: string, description: Latest provider attempt status, or empty when none exists }
+        refundStatus: { type: string, description: Latest refund status, or empty when none exists }
+        refundedPaise: { type: integer, minimum: 0, description: Total amount in processed refunds }
+        shipmentStatus: { type: string, enum: [unfulfilled, ready, shipped, delivered, returned] }
+        shipmentProvider: { type: string }
+        trackingNumber: { type: string }
+        trackingUrl: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    AdminOrderUpdate:
+      type: object
+      required: [expectedVersion, status, reason]
+      properties:
+        expectedVersion: { type: integer, minimum: 1 }
+        status: { type: string, enum: [cancelled, confirmed, processing, ready_to_ship, shipped, delivered] }
+        reason: { type: string, minLength: 3, maxLength: 500 }
+        shipmentProvider: { type: string, maxLength: 80 }
+        trackingNumber: { type: string, maxLength: 100 }
+        trackingUrl: { type: string, format: uri, pattern: '^https://' }
+    AdminOrderDetail:
+      allOf:
+        - { $ref: '#/components/schemas/AdminOrder' }
+        - type: object
+          required: [shippingAddress, customerNote, items, events]
+          properties:
+            shippingAddress: { type: object, additionalProperties: true }
+            customerNote: { type: string }
+            items:
+              type: array
+              items:
+                type: object
+                required: [id, productName, productSku, variantDescription, quantity, unitPricePaise, taxPaise, lineTotalPaise]
+                properties:
+                  id: { type: string, format: uuid }
+                  productName: { type: string }
+                  productSku: { type: string }
+                  variantDescription: { type: string }
+                  quantity: { type: integer, minimum: 1 }
+                  unitPricePaise: { type: integer, minimum: 0 }
+                  taxPaise: { type: integer, minimum: 0 }
+                  lineTotalPaise: { type: integer, minimum: 0 }
+            events:
+              type: array
+              items:
+                type: object
+                required: [fromStatus, toStatus, reason, actorName, createdAt]
+                properties:
+                  fromStatus: { type: string }
+                  toStatus: { type: string }
+                  reason: { type: string }
+                  actorName: { type: string }
+                  createdAt: { type: string, format: date-time }
     AdminCategory:
       type: object
       required: [id, slug, name, subtitle, imageKey, sortOrder, active, version, activeProductCount, updatedAt]
