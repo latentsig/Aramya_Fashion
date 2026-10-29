@@ -16,6 +16,7 @@ import (
 	"github.com/latentsig/aramya-fashion/backend/internal/auth"
 	"github.com/latentsig/aramya-fashion/backend/internal/cart"
 	"github.com/latentsig/aramya-fashion/backend/internal/catalog"
+	"github.com/latentsig/aramya-fashion/backend/internal/checkout"
 	"github.com/latentsig/aramya-fashion/backend/internal/config"
 )
 
@@ -49,11 +50,17 @@ func main() {
 		logger.Error("cart_initialization_failed", "error_type", fmt.Sprintf("%T", err))
 		os.Exit(1)
 	}
+	checkoutService, err := checkout.NewService(pool, cfg.QueryTimeout)
+	if err != nil {
+		logger.Error("checkout_initialization_failed", "error_type", fmt.Sprintf("%T", err))
+		os.Exit(1)
+	}
 
 	router := api.NewRouter(api.RouterConfig{
-		Catalog: catalog.NewRepository(pool, cfg.QueryTimeout),
-		Auth:    authService,
-		Cart:    cartService,
+		Catalog:  catalog.NewRepository(pool, cfg.QueryTimeout),
+		Auth:     authService,
+		Cart:     cartService,
+		Checkout: checkoutService,
 		Ready: func() error {
 			ctx, cancel := context.WithTimeout(context.Background(), cfg.QueryTimeout)
 			defer cancel()

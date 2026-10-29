@@ -84,6 +84,13 @@ func (s *Service) Get(ctx context.Context, userID, guestToken string) (Snapshot,
 	return snapshot, nextGuestToken, rows.Err()
 }
 
+// ResolveForCheckout returns a stable cart identity after merging any guest cart into the signed-in customer's cart.
+func (s *Service) ResolveForCheckout(ctx context.Context, userID, guestToken string) (string, string, error) {
+	dbCtx, cancel := context.WithTimeout(ctx, s.queryTimeout)
+	defer cancel()
+	return s.resolve(dbCtx, userID, guestToken)
+}
+
 func (s *Service) Add(ctx context.Context, userID, guestToken, variantID string, quantity int) (Snapshot, string, error) {
 	if quantity < 1 || quantity > 20 {
 		return Snapshot{}, "", ErrQuantity
