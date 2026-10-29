@@ -1,0 +1,45 @@
+.orders-page{max-width:1100px;min-height:62vh;margin:0 auto;padding-top:65px;padding-bottom:100px}
+.orders-back{display:inline-block;margin-bottom:35px;color:var(--muted);font-size:10px;letter-spacing:.08em}
+.orders-page>.eyebrow{color:var(--red);margin-bottom:14px}
+.orders-page>h1{max-width:720px;margin:0;font:400 clamp(40px,6vw,68px)/1.08 var(--serif);letter-spacing:-.04em}
+.orders-page>h1 em{font-weight:400}
+.orders-intro{max-width:500px;margin:17px 0 38px;color:var(--muted);font-size:12px;line-height:1.8}
+.orders-state{margin:28px 0;padding:22px;background:#f0ebe5;color:var(--muted);font-size:12px;line-height:1.8}
+.orders-state h1{margin:0 0 10px;color:var(--ink);font:400 34px var(--serif)}
+.orders-state button{border:0;background:none;cursor:pointer}
+.orders-empty{padding:44px 34px;background:#f0ebe5}
+.orders-empty h2{margin:0;font:400 34px var(--serif)}
+.orders-empty p{margin:12px 0 24px;color:var(--muted);font-size:12px}
+.order-list{border-top:1px solid var(--line)}
+.order-card{display:flex;justify-content:space-between;align-items:center;gap:24px;padding:23px 0;border-bottom:1px solid var(--line)}
+.order-kicker{margin:0 0 8px;color:var(--red);font-size:9px;letter-spacing:.14em}
+.order-card h2{margin:0;font:400 25px var(--serif)}
+.order-date{margin:6px 0 0;color:var(--muted);font-size:10px}
+.order-card-aside{display:flex;align-items:flex-end;gap:18px;flex-direction:column}
+.order-status{display:inline-flex;align-items:center;min-height:26px;padding:5px 10px;background:#ebe5dd;color:#5b4b40;font-size:9px;letter-spacing:.07em;text-transform:uppercase}
+.order-status-paid,.order-status-confirmed,.order-status-delivered{background:#e4eadf;color:#3f593d}
+.order-status-cancelled,.order-status-refunded{background:#eee1df;color:#7b3733}
+.order-card .text-link,.order-card-aside .text-link{font-size:9px}
+.order-pagination{display:flex;align-items:center;justify-content:space-between;gap:15px;padding-top:23px;color:var(--muted);font-size:10px}
+.order-pagination button{padding:5px 0;border:0;background:none;color:var(--red);font:inherit;cursor:pointer}
+.order-pagination button:disabled{color:#aaa39e;cursor:not-allowed}
+.order-detail-heading{display:flex;align-items:center;gap:15px;margin:18px 0 26px;color:var(--muted);font-size:10px}
+.orders-payment-note{margin:0 0 28px;padding:15px 18px;background:#f0ebe5;color:var(--muted);font-size:11px;line-height:1.7}
+.order-detail-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(250px,.8fr);gap:20px;align-items:start}
+.order-detail-panel{padding:25px 28px;background:#f0ebe5}
+.order-detail-panel>h2{margin:0 0 18px;font:400 25px var(--serif)}
+.order-item{display:flex;justify-content:space-between;gap:18px;padding:17px 0;border-top:1px solid var(--line)}
+.order-item h3{margin:0 0 6px;font:400 17px var(--serif)}
+.order-item p,.order-item span{display:block;margin:0 0 6px;color:var(--muted);font-size:9px;line-height:1.5}
+.order-item strong{flex:none;font-size:11px;font-weight:500}
+.order-totals{padding-top:14px;border-top:1px solid var(--line)}
+.order-totals p{display:flex;justify-content:space-between;gap:16px;margin:8px 0;color:var(--muted);font-size:10px}
+.order-totals strong{color:var(--ink);font-weight:500}
+.order-totals .order-total{margin-top:15px;padding-top:14px;border-top:1px solid var(--line);color:var(--ink);font-size:12px}
+.order-address address{color:var(--muted);font-size:11px;font-style:normal;line-height:1.85}
+.order-address address strong{color:var(--ink);font-weight:500}
+.order-address h3{margin:24px 0 8px;font:400 18px var(--serif)}
+.order-address>p{margin:0;color:var(--muted);font-size:11px;line-height:1.7}
+.order-detail-back{display:inline-block;margin-top:24px}
+@media(max-width:700px){.orders-page{padding:52px 21px 75px}.orders-back{margin-bottom:27px}.order-card{align-items:flex-start}.order-card-aside{align-items:flex-end;gap:12px}.order-detail-grid{grid-template-columns:1fr}.order-detail-panel{padding:23px 20px}}
+@media(max-width:420px){.order-card{gap:12px}.order-card h2{font-size:22px}.order-status{font-size:8px}.order-pagination{font-size:9px}.order-detail-heading{align-items:flex-start;flex-direction:column;gap:9px}}

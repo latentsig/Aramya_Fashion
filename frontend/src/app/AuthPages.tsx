@@ -91,5 +91,5 @@ export function AccountPage() {
     finally { setSubmitting(false); }
   }
 
-  return <main className="account-page section-pad"><p className="eyebrow">YOUR ARAMYA ACCOUNT</p><h1>Welcome, <em>{user.displayName}.</em></h1><p className="account-email">{user.email}</p>{error && <p role="alert" className="auth-error">{error}</p>}<button type="button" className="button button-red" onClick={() => void signOut()} disabled={submitting}>{submitting ? 'Signing out…' : 'Sign out'}</button></main>;
+  return <main className="account-page section-pad"><p className="eyebrow">YOUR ARAMYA ACCOUNT</p><h1>Welcome, <em>{user.displayName}.</em></h1><p className="account-email">{user.email}</p><p className="account-orders-link"><Link className="text-link" to="/account/orders">View your order history ↗</Link></p>{error && <p role="alert" className="auth-error">{error}</p>}<button type="button" className="button button-red" onClick={() => void signOut()} disabled={submitting}>{submitting ? 'Signing out…' : 'Sign out'}</button></main>;
 }

@@ -1,12 +1,26 @@
 package api
 
 import (
+	"context"
+	"errors"
 	"io"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/latentsig/aramya-fashion/backend/internal/orders"
 )
+
+type unusedOrderReader struct{}
+
+func (unusedOrderReader) List(context.Context, string, int, int) ([]orders.Summary, error) {
+	return nil, errors.New("order repository must not be called without a customer session")
+}
+
+func (unusedOrderReader) Get(context.Context, string, string) (orders.Detail, error) {
+	return orders.Detail{}, errors.New("order repository must not be called without a customer session")
+}
 
 func TestHealthAndReadiness(t *testing.T) {
 	tests := []struct {
@@ -65,5 +79,17 @@ func TestBoundedInteger(t *testing.T) {
 	got, err := parseBoundedInt("12", 24, 1, 100)
 	if err != nil || got != 12 {
 		t.Fatalf("parseBoundedInt(12) = %d, %v", got, err)
+	}
+}
+
+func TestOrderRoutesRequireCustomerSession(t *testing.T) {
+	router := NewRouter(RouterConfig{Orders: unusedOrderReader{}})
+	for _, path := range []string{"/api/v1/orders", "/api/v1/orders/123e4567-e89b-12d3-a456-426614174000"} {
+		response := httptest.NewRecorder()
+		request := httptest.NewRequest(http.MethodGet, path, nil)
+		router.ServeHTTP(response, request)
+		if response.Code != http.StatusUnauthorized {
+			t.Errorf("GET %s status = %d, want %d", path, response.Code, http.StatusUnauthorized)
+		}
 	}
 }

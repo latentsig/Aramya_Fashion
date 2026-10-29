@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Aramya Fashion API
   version: 0.1.0
-  description: Database-backed catalog, customer session, persistent cart, provisional quote, and pending-payment order APIs. Payment and fulfillment integrations remain unimplemented.
+  description: Database-backed catalog, customer session, persistent cart, provisional checkout, customer order history, and order detail APIs. Payment and fulfillment integrations remain unimplemented.
 servers:
   - url: http://localhost:18080
 paths:
@@ -167,6 +167,24 @@ paths:
       responses:
         '200': { description: Updated cart }
         '404': { description: Cart line was not found }
+    delete:
+      summary: Remove a cart line
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+        - in: cookie
+          name: aramya_csrf
+          required: true
+          schema: { type: string }
+        - in: header
+          name: X-CSRF-Token
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Updated cart }
+        '404': { description: Cart line was not found }
   /api/v1/checkout/quote:
     post:
       summary: Recalculate the current cart using database prices
@@ -226,25 +244,61 @@ paths:
         '200': { description: Idempotent replay of the original order response }
         '400': { description: Invalid checkout details or idempotency key }
         '409': { description: Empty cart, insufficient stock, or idempotency conflict }
-        '409': { description: Insufficient stock }
-    delete:
-      summary: Remove a cart line
+  /api/v1/orders:
+    get:
+      summary: List orders belonging to the authenticated customer
+      security: [{ sessionCookie: [] }]
+      parameters:
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 50, default: 20 }
+        - in: query
+          name: offset
+          schema: { type: integer, minimum: 0, maximum: 100000, default: 0 }
+      responses:
+        '200':
+          description: Customer order page
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, pagination]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/OrderSummary' }
+                  pagination:
+                    type: object
+                    required: [limit, offset, count, hasMore]
+                    properties:
+                      limit: { type: integer }
+                      offset: { type: integer }
+                      count: { type: integer }
+                      hasMore: { type: boolean }
+        '401': { description: Customer session is missing, expired, or revoked }
+        '400': { description: Invalid pagination parameters }
+  /api/v1/orders/{id}:
+    get:
+      summary: Get an order owned by the authenticated customer
+      security: [{ sessionCookie: [] }]
       parameters:
         - in: path
           name: id
           required: true
           schema: { type: string, format: uuid }
-        - in: cookie
-          name: aramya_csrf
-          required: true
-          schema: { type: string }
-        - in: header
-          name: X-CSRF-Token
-          required: true
-          schema: { type: string }
       responses:
-        '200': { description: Updated cart }
-        '404': { description: Cart line was not found }
+        '200':
+          description: Order details and checkout snapshots
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: '#/components/schemas/OrderDetail' }
+        '400': { description: Invalid order ID }
+        '401': { description: Customer session is missing, expired, or revoked }
+        '404': { description: Order does not exist for this customer }
   /api/v1/products:
     get:
       summary: Search and paginate active products
@@ -352,3 +406,42 @@ components:
         imageKey: { type: string }
         status: { type: string }
         inventoryPolicy: { type: string }
+    OrderSummary:
+      type: object
+      required: [id, orderNumber, status, currency, subtotalPaise, taxPaise, shippingPaise, discountPaise, totalPaise, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        orderNumber: { type: string }
+        status: { type: string, enum: [pending_payment, paid, confirmed, processing, ready_to_ship, shipped, delivered, cancelled, refund_pending, refunded] }
+        currency: { type: string, minLength: 3, maxLength: 3 }
+        subtotalPaise: { type: integer, minimum: 0 }
+        taxPaise: { type: integer, minimum: 0 }
+        shippingPaise: { type: integer, minimum: 0 }
+        discountPaise: { type: integer, minimum: 0 }
+        totalPaise: { type: integer, minimum: 0 }
+        createdAt: { type: string, format: date-time }
+    OrderItem:
+      type: object
+      required: [id, productId, variantId, productName, productSku, variantDescription, quantity, unitPricePaise, taxPaise, lineTotalPaise]
+      properties:
+        id: { type: string, format: uuid }
+        productId: { type: string, format: uuid }
+        variantId: { type: string, format: uuid }
+        productName: { type: string }
+        productSku: { type: string }
+        variantDescription: { type: string }
+        quantity: { type: integer, minimum: 1 }
+        unitPricePaise: { type: integer, minimum: 0 }
+        taxPaise: { type: integer, minimum: 0 }
+        lineTotalPaise: { type: integer, minimum: 0 }
+    OrderDetail:
+      allOf:
+        - $ref: '#/components/schemas/OrderSummary'
+        - type: object
+          required: [shippingAddress, customerNote, items]
+          properties:
+            shippingAddress: { type: object, additionalProperties: true }
+            customerNote: { type: string }
+            items:
+              type: array
+              items: { $ref: '#/components/schemas/OrderItem' }
