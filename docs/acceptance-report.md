@@ -63,3 +63,13 @@ This report tracks verified milestones. It does not claim full e-commerce accept
 - Successful login and registration store the returned customer in the auth context; logout revokes the session and refreshes the cart context so guest/customer carts follow the session identity.
 - The header switches between Sign in and Account based on the current session. Auth errors are shown accessibly; there are no fake Google or password-reset actions.
 - Frontend auth flow test covers CSRF-protected login/logout; `npm test` passed 8/8 and `npm run build` passed. Sign-up UI is typechecked and exercises the same registration API flow; database registration was verified in the prior auth API integration milestone.
+
+## Customer order history and homepage media refresh — verified locally, current branch
+
+- Added authenticated `GET /api/v1/orders` and `GET /api/v1/orders/:id` with customer ownership checks, bounded pagination, order-item snapshots, totals, and shipping details. Added `/account/orders` and `/account/orders/:id` views and account navigation; the customer sees only API responses for their own authenticated session.
+- Replaced the rejected hero clip with Pexels video 7684805, whose listing describes a woman twirling in a colorful saree and marks the clip free to use. The video is streamed from Pexels; the existing local catalog poster remains as a fallback. See `docs/media-attributions.md`.
+- Replaced the blurry custom-order section thumbnail with the repository’s original `bridal lehanga.jpg` (1715×2410 source, 599,591 bytes), preserving its source under the legacy `image assests/` directory.
+- Started the disposable PostgreSQL 16 cluster on `127.0.0.1:55432` and the Go API on `127.0.0.1:18080`. Verified API readiness, live product variant IDs, CSRF bootstrap, guest cart read, and a CSRF-protected cart add through the same Vite `/api` proxy used by the browser. The API response reported a real one-line cart and server-calculated subtotal of 480,000 paise (₹4,800); no payment or order completion was simulated.
+- `npm test`: 11/11 tests passed. `npm run build`: passed (Vite reports non-failing upstream Zod pure-annotation warnings). `go test -count=1 ./...` and `go vet ./...` passed. `git diff --check` passed.
+- The preview at `http://localhost:8000/` serves the updated React source and proxies API traffic to the local Go API. Restarting the stale Vite process removed the browser’s earlier “bag could not be updated” toast; the refreshed page now loads cleanly.
+- Remaining verification: confirm external Pexels playback on the target browser/network and complete owner-versus-other-customer order integration coverage. Razorpay, R2, admin, PWA, Android, monitoring, and cloud deployment remain unimplemented.
