@@ -1,0 +1,34 @@
+.admin-order-filters{flex-wrap:wrap}
+.admin-order-filters label:first-child{flex:1;min-width:240px}
+.admin-order-list{display:grid;gap:11px}
+.admin-order-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:20px;padding:18px 20px;background:#f0ebe5;border:1px solid #e5ddd5}
+.admin-order-heading{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.admin-order-heading h2{font:22px var(--serif);margin:0}
+.admin-order-main p{font-size:11px;color:var(--muted);margin:8px 0 5px;overflow-wrap:anywhere}
+.admin-order-main small{font-size:9px;color:var(--muted);line-height:1.7}
+.admin-order-total{display:grid;justify-items:end;gap:12px}
+.admin-order-total>b{font:20px var(--serif)}
+.admin-order-panel{width:min(700px,100%)}
+.admin-order-block{padding:19px 0;border-bottom:1px solid var(--line)}
+.admin-order-block h3,.admin-order-transition h3{font:20px var(--serif);margin:0 0 10px}
+.admin-order-block p{font-size:11px;line-height:1.8;color:var(--muted);overflow-wrap:anywhere;margin:0 0 18px}
+.admin-order-block p:last-child{margin-bottom:0}
+.admin-order-block a{color:var(--red);text-decoration:underline;text-underline-offset:2px}
+.admin-order-no-payment{padding:10px 12px;background:#f0ebe5;border-left:2px solid var(--red)}
+.admin-order-item{display:flex;justify-content:space-between;align-items:flex-start;gap:15px;padding:10px 0;border-bottom:1px solid var(--line);font-size:11px}
+.admin-order-item>span{display:grid;gap:5px}
+.admin-order-item small{font-size:9px;color:var(--muted)}
+.admin-order-money{display:grid;grid-template-columns:1fr auto;gap:9px;padding-top:14px;font-size:11px}
+.admin-order-events{display:grid;gap:12px;margin:0;padding:0;list-style:none}
+.admin-order-events li{display:grid;gap:4px;padding-left:14px;border-left:1px solid var(--red)}
+.admin-order-events strong{font-size:11px;text-transform:capitalize}
+.admin-order-events small,.admin-order-events p{font-size:9px;color:var(--muted);margin:0}
+.admin-order-transition{display:grid;gap:13px;padding-top:20px}
+.admin-order-transition label{display:grid;gap:7px;color:var(--muted);font-size:9px;letter-spacing:.08em;text-transform:uppercase}
+.admin-order-transition input,.admin-order-transition select,.admin-order-transition textarea{width:100%;min-height:42px;padding:10px 12px;border:1px solid var(--line);background:#fff;color:var(--ink);font:12px var(--sans);letter-spacing:normal;text-transform:none}
+.admin-order-transition textarea{resize:vertical;line-height:1.6}
+.admin-order-transition p{font-size:10px;color:var(--muted);line-height:1.6;margin:0}
+.admin-order-transition button{justify-self:start;cursor:pointer}
+.admin-order-transition button:disabled{opacity:.5;cursor:wait}
+.admin-orders-loading{position:fixed;z-index:1001;inset:0 0 auto;background:var(--paper);padding:14px;text-align:center}
+@media(max-width:700px){.admin-order-filters{flex-direction:column}.admin-order-filters label:first-child{min-width:0;width:100%}.admin-order-filters label,.admin-order-filters .button{width:100%}.admin-order-row{grid-template-columns:1fr;gap:14px;padding:15px}.admin-order-total{grid-template-columns:1fr auto;align-items:center;justify-items:start}.admin-order-total>b{font-size:18px}.admin-order-total .admin-studio-back{justify-self:end}.admin-order-transition button{width:100%}}

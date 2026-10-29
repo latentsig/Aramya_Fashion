@@ -139,6 +139,7 @@ export function AdminStudioPage() {
         <Link to="/admin/products">Products</Link>
         <Link to="/admin/categories">Categories</Link>
         <Link to="/admin/inventory">Inventory</Link>
+        <Link to="/admin/orders">Orders</Link>
         <Link aria-current={kind === 'appointments' ? 'page' : undefined} to="/admin/appointments">Appointments</Link>
         <Link aria-current={kind === 'custom-orders' ? 'page' : undefined} to="/admin/custom-orders">Made to order</Link>
       </nav>

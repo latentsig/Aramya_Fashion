@@ -75,7 +75,7 @@ export function AdminInventoryPage() {
 
   return <main className="admin-studio admin-inventory section-pad">
     <div className="admin-studio-heading"><div><p className="eyebrow">ARAMYA · STUDIO TEAM</p><h1>Stock, <em>with care.</em></h1><p>Review variant availability and record stock corrections with an auditable reason.</p></div><Link className="admin-studio-back" to="/admin/appointments">Studio requests ↗</Link></div>
-    <nav className="admin-studio-tabs" aria-label="Admin sections"><Link to="/admin/products">Products</Link><Link to="/admin/categories">Categories</Link><Link aria-current="page" to="/admin/inventory">Inventory</Link><Link to="/admin/appointments">Studio requests</Link></nav>
+    <nav className="admin-studio-tabs" aria-label="Admin sections"><Link to="/admin/products">Products</Link><Link to="/admin/categories">Categories</Link><Link aria-current="page" to="/admin/inventory">Inventory</Link><Link to="/admin/orders">Orders</Link><Link to="/admin/appointments">Studio requests</Link></nav>
     <form className="admin-studio-filters" onSubmit={applySearch}><label className="inventory-search">Search<input aria-label="Search inventory" value={searchInput} onChange={(event) => setSearchInput(event.target.value)} maxLength={100} placeholder="Product, category or SKU" /></label><button className="button button-light" type="submit">Search stock <span>↗</span></button></form>
     {notice && <p className="admin-studio-notice" role="status">{notice}</p>}
     {failure && <div className="admin-studio-state" role="alert"><p>{failure}</p>{failure.includes('Sign in') && <Link to="/login">Sign in</Link>}<button type="button" onClick={() => { setOffset(0); setRefresh((value) => value + 1); }}>Retry</button></div>}
