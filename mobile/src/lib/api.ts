@@ -37,6 +37,7 @@ export type CartLine = {
 };
 
 export type CartSnapshot = { lines: CartLine[]; count: number; subtotalPaise: number };
+export type StudioRequestResult = { id: string; status: string };
 
 const apiBase = (process.env.EXPO_PUBLIC_API_BASE_URL ?? '').replace(/\/$/, '');
 const configuredMediaBase = process.env.EXPO_PUBLIC_MEDIA_BASE_URL ?? (apiBase ? `${apiBase}/media` : '');
@@ -86,6 +87,31 @@ export function getCart() {
 async function csrfToken() {
   const result = await request<{ csrfToken: string }>('/auth/csrf');
   return result.csrfToken;
+}
+
+export function newStudioRequestKey() {
+  return `studio-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
+}
+
+async function submitStudioRequest<T extends StudioRequestResult>(path: string, input: Record<string, string>, idempotencyKey: string) {
+  const token = await csrfToken();
+  return request<T>(path, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-Token': token,
+      'Idempotency-Key': idempotencyKey,
+    },
+    body: JSON.stringify(input),
+  });
+}
+
+export function createAppointment(input: { name: string; email: string; phone: string; interest: string; note: string }, idempotencyKey: string) {
+  return submitStudioRequest('/appointments', input, idempotencyKey);
+}
+
+export function createCustomOrderRequest(input: { name: string; email: string; phone: string; garmentType: string; occasion: string; requirements: string }, idempotencyKey: string) {
+  return submitStudioRequest('/custom-order-requests', input, idempotencyKey);
 }
 
 export async function addCartItem(variantId: string, quantity = 1) {
