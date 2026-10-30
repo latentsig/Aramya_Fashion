@@ -38,6 +38,8 @@ export type CartLine = {
 
 export type CartSnapshot = { lines: CartLine[]; count: number; subtotalPaise: number };
 export type StudioRequestResult = { id: string; status: string };
+export type CheckoutQuote = { subtotalPaise: number; totalPaise: number; quoteStatus: string; paymentAvailable: boolean };
+export type CheckoutOrder = { id: string; orderNumber: string; status: string; totalPaise: number };
 
 const apiBase = (process.env.EXPO_PUBLIC_API_BASE_URL ?? '').replace(/\/$/, '');
 const configuredMediaBase = process.env.EXPO_PUBLIC_MEDIA_BASE_URL ?? (apiBase ? `${apiBase}/media` : '');
@@ -104,6 +106,23 @@ async function submitStudioRequest<T extends StudioRequestResult>(path: string, 
     },
     body: JSON.stringify(input),
   });
+}
+
+export async function createDemoOrder(input: { name: string; email: string; phone: string; address: string; city: string; region: string; postalCode: string }, idempotencyKey: string) {
+  const quoteToken = await csrfToken();
+  const quote = await request<CheckoutQuote>('/checkout/quote', {
+    method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': quoteToken }, body: JSON.stringify({}),
+  });
+  const token = await csrfToken();
+  const order = await request<CheckoutOrder>('/checkout/orders', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': token, 'Idempotency-Key': idempotencyKey },
+    body: JSON.stringify({
+      email: input.email, phone: input.phone, customerNote: 'Sample demo order',
+      address: { recipientName: input.name, phone: input.phone, line1: input.address, line2: '', city: input.city, region: input.region, postalCode: input.postalCode, countryCode: 'IN' },
+    }),
+  });
+  return { order, quote };
 }
 
 export function createAppointment(input: { name: string; email: string; phone: string; interest: string; note: string }, idempotencyKey: string) {
