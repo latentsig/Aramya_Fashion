@@ -141,3 +141,10 @@ This report tracks verified milestones and does not claim full e-commerce accept
 - `go test -count=1 ./...` passed, including authorization, bounded label, database readiness, and token validation checks. `go vet ./...` passed. Prometheus/Grafana YAML and dashboard JSON parsed; `docker compose ... config --quiet` passed; `git diff --check` passed.
 - The local Prometheus/Grafana containers were not started because the API scrape token and Grafana admin password are intentionally operator-provided local configuration. No external credentials were generated or written. Live scrape, dashboard rendering, and alert firing remain unverified.
 - Payment, webhook, R2, stock reservation, and slow-query metrics are not emitted because their corresponding instrumented operations are not implemented. Cloud alert delivery and GCP monitoring remain pending deployment access/configuration.
+
+## R2 media inventory — verified locally
+
+- Added a reproducible SHA-256 media manifest generator. It scans the tracked original asset folder, preserved legacy distribution copies, PWA brand assets, and only the two approved Aramya native icons; generated build copies and Expo starter art are excluded.
+- The manifest records 90 source file copies representing 46 unique binaries (4,603,871 bytes), with 44 duplicate copies grouped by checksum. It includes candidate object keys and references for all 39 products plus five category images; no catalog image reference is missing.
+- `node scripts/migrate-r2/create-media-manifest.mjs` and its `--check` verification passed. No original asset was moved or deleted.
+- R2 uploads and storage-side checksum verification were not attempted: no account ID, access keys, buckets, or delivery domain are configured. Database media records and `product_images` remain unchanged. See [R2 media migration instructions](r2-media-migration.md).

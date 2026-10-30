@@ -6,7 +6,7 @@ The active storefront is the React/Vite app in `frontend/`. The original HTML, C
 
 The backend is a Go/Gin REST service with PostgreSQL/pgx repositories and explicit service boundaries. `backend/cmd/migrate` applies ordered `*.up.sql` migrations transactionally and records versions in `schema_migrations`; it only rolls back the latest applied migration and runs the paired down SQL in a transaction. `backend/cmd/seed` transactionally upserts the catalog and creates made-to-measure variant identities without creating stock. The commerce migration includes users, hashed sessions and reset tokens, RBAC, addresses, variants, inventory ledger and reservations, carts, orders, payments, refunds, shipments, appointments, custom-order requests, media metadata, idempotency records, and audit logs. The React/Vite public site and PWA and separate Expo React Native mobile client consume the API. Public API routes include health/readiness, catalog, sessions, guest/customer cart, pending checkout orders, customer order history, and studio requests. Staff routes cover studio requests, inventory, catalog products/categories, and order fulfillment. Order state transitions are optimistic, audited and restricted; payment/refund outcomes are provider-owned, not staff-set. Product image management is limited to existing catalog asset references until R2 uploads are implemented.
 
-The API can expose an authenticated Prometheus scrape endpoint when `PROMETHEUS_BEARER_TOKEN` is configured. It records HTTP route-template counts/latencies, PostgreSQL readiness, checkout order-attempt outcomes, and Go runtime metrics. Local Prometheus/Grafana configuration, a provisioned dashboard, alert rules, and a runbook live under `infrastructure/monitoring/`.
+The API can expose an authenticated Prometheus scrape endpoint when `PROMETHEUS_BEARER_TOKEN` is configured. It records HTTP route-template counts/latencies, PostgreSQL readiness, checkout order-attempt outcomes, and Go runtime metrics. Local Prometheus/Grafana configuration, a provisioned dashboard, alert rules, and a runbook live under `infrastructure/monitoring/`. The media migration manifest records the current source bytes, SHA-256 hashes, legacy duplicates, and catalog image references; uploads and R2 verification have not been run.
 
 ## Target architecture
 
@@ -35,7 +35,7 @@ PostgreSQL is authoritative for catalog, identity, cart, inventory, orders, paym
 ## Not implemented or not yet verified
 
 - Razorpay test order creation, signature/webhook verification, reconciliation, and refunds. Current checkout only persists pending-payment orders and explicitly reports payment unavailable.
-- Cloudflare R2 uploads/migration; product images still reference preserved repository assets.
+- Cloudflare R2 uploads/migration; product images still reference preserved repository assets. The current source inventory is in `docs/asset-migration-manifest.json`.
 - Google sign-in, password reset/email verification, customer quotation approval, and notification delivery.
 - Local monitoring stack has parsed configuration but has not been run against a live API scrape in this environment. Production metrics ingress, alert delivery, and cloud monitoring still need deployment configuration.
 - Android APK/device testing; local Android SDK, ADB, and emulator are unavailable. Mobile authentication and checkout remain unimplemented.
