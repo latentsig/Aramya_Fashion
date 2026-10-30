@@ -168,7 +168,14 @@ This report tracks verified milestones and does not claim full e-commerce accept
 - `payment_events` now acts as the durable inbox: event ID and raw-body SHA-256 uniqueness checks, duplicate acknowledgment, conflicting replay rejection, and atomic payment/order application.
 - Captured events apply the shared capture and inventory-reservation transaction. Authorized and failed events cannot downgrade captured attempts; unknown events are recorded as ignored, and unmatched signed orders are retained for review.
 - `go test -count=1 ./...` passes. `go vet ./internal/api ./internal/payments` passes. The new PostgreSQL replay/out-of-order integration test compiles and is skipped because this environment has no configured disposable local database. OpenAPI YAML parses (38 paths). Razorpay credentials are not configured, so no live provider event has been received.
-- Remaining in the payment area: real-account test configuration, reconciliation, refunds, and payment metrics. This does not establish end-to-end payment acceptance.
+- Remaining in the payment area: real-account test configuration, reconciliation, and refunds. This does not establish end-to-end payment acceptance.
+
+## Razorpay webhook monitoring — locally verified; live scrape pending
+
+- Added bounded `aramya_payment_webhook_events_total{outcome}` instrumentation for processed/duplicate events, invalid inputs, conflicts, oversized requests, missing headers, and processing failures. Event IDs, payloads, and error text cannot become labels.
+- Added a Grafana panel and Prometheus alert rule for webhook processing failures, plus metric scrape coverage.
+- `go test -count=1 ./...` and `go vet ./...` passed. Monitoring alerts YAML and dashboard JSON parsed; dashboard contains seven panels. The local monitoring stack was not launched because Docker Desktop's Linux engine is not running.
+- Remaining: validate a live Prometheus scrape and alert delivery when Docker/monitoring credentials are configured.
 
 ## Tracked checkout stock reservations — verified by unit/build checks; database integration guarded
 

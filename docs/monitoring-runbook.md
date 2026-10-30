@@ -1,6 +1,6 @@
 # Local monitoring and API metrics
 
-The Go API exposes Prometheus metrics at `GET /metrics` only when `PROMETHEUS_BEARER_TOKEN` is set. The token must be at least 32 characters. Scrapes require `Authorization: Bearer <token>`. The endpoint records only route templates, HTTP methods/status codes, bounded checkout outcomes, and database readiness; it does not label customer identifiers, addresses, payment bodies, query parameters, or credentials.
+The Go API exposes Prometheus metrics at `GET /metrics` only when `PROMETHEUS_BEARER_TOKEN` is set. The token must be at least 32 characters. Scrapes require `Authorization: Bearer <token>`. The endpoint records only route templates, HTTP methods/status codes, bounded checkout and webhook outcomes, and database readiness; it does not label customer identifiers, addresses, payment bodies, query parameters, or credentials.
 
 ## Start locally (Windows PowerShell)
 
@@ -18,9 +18,10 @@ If Docker is unavailable, scrape `http://localhost:18080/metrics` with an Author
 - `aramya_database_ready` is updated on each `/ready` database ping.
 - `aramya_order_creation_attempts_total{outcome}` records order creations, idempotent replays, business rejections, and server failures.
 - `aramya_inventory_reservation_attempts_total{outcome}` records tracked-stock reservations as `reserved`, stock rejections as `rejected`, and reservation database/ledger failures as `failed`. Outcomes are fixed labels; IDs and SQL error text are never labels. A failure alert is provisioned in `infrastructure/monitoring/alerts.yml`.
+- `aramya_payment_webhook_events_total{outcome}` records accepted events, duplicates, invalid signatures/payloads, conflicting event IDs, missing headers, oversized bodies, and processing failures. All outcomes are fixed labels; event IDs, payment data, and error messages are excluded. Processing failures alert through `AramyaPaymentWebhookProcessingFailures`.
 - Go runtime metrics are also available from the process collector.
 
-Payment/webhook, R2, and database slow-query metrics are not emitted yet because those corresponding instrumented operations are not implemented. Add counters/timers alongside those real operations when those milestones are built; do not infer success from request counts.
+R2 and database slow-query metrics are not emitted yet because those corresponding instrumented operations are not implemented. Add counters/timers alongside those real operations when those milestones are built; do not infer success from request counts.
 
 ## Alert triage
 

@@ -79,7 +79,7 @@ func NewRouter(cfg RouterConfig) *gin.Engine {
 		})
 	}
 	if cfg.CheckoutPayments != nil {
-		registerRazorpayWebhookRoute(router, cfg.CheckoutPayments, cfg.Logger)
+		registerRazorpayWebhookRoute(router, cfg.CheckoutPayments, cfg.Logger, cfg.Metrics)
 	}
 
 	v1 := router.Group("/api/v1")

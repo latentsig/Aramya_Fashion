@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/latentsig/aramya-fashion/backend/internal/auth"
 	"github.com/latentsig/aramya-fashion/backend/internal/cart"
+	"github.com/latentsig/aramya-fashion/backend/internal/observability"
 	"github.com/latentsig/aramya-fashion/backend/internal/payments"
 )
 
@@ -19,31 +20,56 @@ type CheckoutPaymentGateway interface {
 	ProcessWebhook(ctx context.Context, eventID, signature string, raw []byte) (payments.WebhookResult, error)
 }
 
-func registerRazorpayWebhookRoute(router *gin.Engine, gateway CheckoutPaymentGateway, logger *slog.Logger) {
+func registerRazorpayWebhookRoute(router *gin.Engine, gateway CheckoutPaymentGateway, logger *slog.Logger, metrics *observability.Metrics) {
 	router.POST("/api/v1/webhooks/razorpay", func(c *gin.Context) {
 		eventID := c.GetHeader("x-razorpay-event-id")
 		signature := c.GetHeader("X-Razorpay-Signature")
 		if eventID == "" || signature == "" {
+			if metrics != nil {
+				metrics.RecordPaymentWebhook("rejected_headers")
+			}
 			c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"code": "invalid_webhook_headers", "message": "Webhook headers are required"}})
 			return
 		}
 		c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, 1<<20)
 		raw, err := io.ReadAll(c.Request.Body)
 		if err != nil {
+			if metrics != nil {
+				metrics.RecordPaymentWebhook("too_large")
+			}
 			c.JSON(http.StatusRequestEntityTooLarge, gin.H{"error": gin.H{"code": "webhook_too_large", "message": "Webhook payload exceeds the allowed size"}})
 			return
 		}
 		result, err := gateway.ProcessWebhook(c.Request.Context(), eventID, signature, raw)
 		switch {
 		case err == nil:
+			outcome := "processed"
+			if result.Duplicate {
+				outcome = "duplicate"
+			}
+			if metrics != nil {
+				metrics.RecordPaymentWebhook(outcome)
+			}
 			c.JSON(http.StatusOK, gin.H{"data": result})
 		case errors.Is(err, payments.ErrWebhookSignature):
+			if metrics != nil {
+				metrics.RecordPaymentWebhook("invalid_signature")
+			}
 			c.JSON(http.StatusUnauthorized, gin.H{"error": gin.H{"code": "webhook_signature_invalid", "message": "Webhook signature is invalid"}})
 		case errors.Is(err, payments.ErrWebhookInvalid):
+			if metrics != nil {
+				metrics.RecordPaymentWebhook("invalid_payload")
+			}
 			c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"code": "webhook_payload_invalid", "message": "Webhook payload is invalid"}})
 		case errors.Is(err, payments.ErrWebhookConflict):
+			if metrics != nil {
+				metrics.RecordPaymentWebhook("conflict")
+			}
 			c.JSON(http.StatusConflict, gin.H{"error": gin.H{"code": "webhook_event_conflict", "message": "Webhook event ID conflicts with a prior delivery"}})
 		default:
+			if metrics != nil {
+				metrics.RecordPaymentWebhook("failed")
+			}
 			writeInternalError(c, logger, err)
 		}
 	})
