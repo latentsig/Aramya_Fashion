@@ -1,0 +1,14 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - /etc/prometheus/alerts.yml
+
+scrape_configs:
+  - job_name: aramya-api
+    metrics_path: /metrics
+    scrape_interval: 15s
+    static_configs:
+      - targets: [host.docker.internal:18080]
+    bearer_token_file: /etc/prometheus/metrics-token

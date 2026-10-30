@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/latentsig/aramya-fashion/backend/internal/appointments"
+	"github.com/latentsig/aramya-fashion/backend/internal/observability"
 	"github.com/latentsig/aramya-fashion/backend/internal/orders"
 )
 
@@ -68,6 +69,66 @@ func TestHealthAndReadiness(t *testing.T) {
 				t.Fatal("expected request ID header")
 			}
 		})
+	}
+}
+
+func TestMetricsEndpointRequiresBearerAndUsesRouteTemplates(t *testing.T) {
+	const token = "local-test-token-with-at-least-32-characters"
+	metrics := observability.New()
+	router := NewRouter(RouterConfig{Logger: slog.New(slog.NewTextHandler(io.Discard, nil)), Metrics: metrics, MetricsBearerToken: token})
+	unauthorized := httptest.NewRecorder()
+	router.ServeHTTP(unauthorized, httptest.NewRequest(http.MethodGet, "/metrics", nil))
+	if unauthorized.Code != http.StatusUnauthorized {
+		t.Fatalf("unauthorized scrape status=%d", unauthorized.Code)
+	}
+
+	router.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/health?email=private@example.test", nil))
+	scrape := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodGet, "/metrics", nil)
+	request.Header.Set("Authorization", "Bearer "+token)
+	router.ServeHTTP(scrape, request)
+	if scrape.Code != http.StatusOK {
+		t.Fatalf("authorized scrape status=%d body=%s", scrape.Code, scrape.Body.String())
+	}
+	body := scrape.Body.String()
+	if !strings.Contains(body, `aramya_http_requests_total{method="GET",route="/health",status="200"} 1`) {
+		t.Fatalf("route metrics missing: %s", body)
+	}
+	if strings.Contains(body, "private@example.test") {
+		t.Fatal("metrics exposed a query parameter")
+	}
+}
+
+func TestReadinessUpdatesDatabaseMetric(t *testing.T) {
+	metrics := observability.New()
+	ready := false
+	router := NewRouter(RouterConfig{
+		Logger: slog.New(slog.NewTextHandler(io.Discard, nil)), Metrics: metrics,
+		MetricsBearerToken: "local-test-token-with-at-least-32-characters",
+		Ready: func() error {
+			if !ready {
+				return errors.New("database unavailable")
+			}
+			return nil
+		},
+	})
+	response := httptest.NewRecorder()
+	router.ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/ready", nil))
+	if response.Code != http.StatusServiceUnavailable {
+		t.Fatalf("unready status=%d", response.Code)
+	}
+	ready = true
+	response = httptest.NewRecorder()
+	router.ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/ready", nil))
+	if response.Code != http.StatusOK {
+		t.Fatalf("ready status=%d", response.Code)
+	}
+	scrape := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodGet, "/metrics", nil)
+	request.Header.Set("Authorization", "Bearer local-test-token-with-at-least-32-characters")
+	router.ServeHTTP(scrape, request)
+	if !strings.Contains(scrape.Body.String(), "aramya_database_ready 1") {
+		t.Fatalf("database readiness metric missing: %s", scrape.Body.String())
 	}
 }
 

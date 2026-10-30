@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: Aramya
+    orgId: 1
+    folder: Aramya
+    type: file
+    disableDeletion: true
+    editable: false
+    options:
+      path: /var/lib/grafana/dashboards

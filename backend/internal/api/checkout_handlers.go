@@ -9,9 +9,10 @@ import (
 	"github.com/latentsig/aramya-fashion/backend/internal/auth"
 	"github.com/latentsig/aramya-fashion/backend/internal/cart"
 	"github.com/latentsig/aramya-fashion/backend/internal/checkout"
+	"github.com/latentsig/aramya-fashion/backend/internal/observability"
 )
 
-func registerCheckoutRoutes(v1 *gin.RouterGroup, service *checkout.Service, cartService *cart.Service, authService *auth.Service, secure bool, sameSite http.SameSite, logger *slog.Logger) {
+func registerCheckoutRoutes(v1 *gin.RouterGroup, service *checkout.Service, cartService *cart.Service, authService *auth.Service, secure bool, sameSite http.SameSite, logger *slog.Logger, metrics *observability.Metrics) {
 	api := v1.Group("/checkout")
 	api.POST("/quote", func(c *gin.Context) {
 		userID, guestToken, err := cartOwner(c, authService)
@@ -49,6 +50,19 @@ func registerCheckoutRoutes(v1 *gin.RouterGroup, service *checkout.Service, cart
 			return
 		}
 		order, replayed, err := service.CreateOrder(c.Request.Context(), cartID, userID, details.Email, details.Phone, key, details)
+		if metrics != nil {
+			if err != nil {
+				outcome := "failed"
+				if errors.Is(err, checkout.ErrEmptyCart) || errors.Is(err, checkout.ErrInvalidCheckout) || errors.Is(err, checkout.ErrInsufficientStock) || errors.Is(err, checkout.ErrIdempotencyConflict) || errors.Is(err, cart.ErrOutOfStock) {
+					outcome = "rejected"
+				}
+				metrics.RecordOrderAttempt(outcome)
+			} else if replayed {
+				metrics.RecordOrderAttempt("replayed")
+			} else {
+				metrics.RecordOrderAttempt("created")
+			}
+		}
 		if writeCheckoutError(c, logger, err) {
 			return
 		}
