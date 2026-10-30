@@ -43,6 +43,7 @@ type Config struct {
 	MetricsBearerToken    string
 	R2                    *R2Config
 	Razorpay              *RazorpayConfig
+	CheckoutPricingFinal  bool
 }
 
 func Load() (Config, error) {
@@ -55,6 +56,13 @@ func Load() (Config, error) {
 		SessionTTL:            7 * 24 * time.Hour,
 		SessionCookieSameSite: "lax",
 		MetricsBearerToken:    strings.TrimSpace(os.Getenv("PROMETHEUS_BEARER_TOKEN")),
+	}
+	if value := strings.TrimSpace(os.Getenv("CHECKOUT_PRICING_FINAL")); value != "" {
+		final, err := strconv.ParseBool(value)
+		if err != nil {
+			return Config{}, errors.New("CHECKOUT_PRICING_FINAL must be true or false")
+		}
+		cfg.CheckoutPricingFinal = final
 	}
 	if cfg.Address == "" {
 		cfg.Address = ":8080"
@@ -86,6 +94,9 @@ func Load() (Config, error) {
 			return Config{}, errors.New("Razorpay configuration must use a test-mode key ID and non-empty API and webhook secrets")
 		}
 		cfg.Razorpay = &RazorpayConfig{KeyID: razorpayValues[0], KeySecret: razorpayValues[1], WebhookSecret: razorpayValues[2]}
+	}
+	if cfg.CheckoutPricingFinal && cfg.Razorpay == nil {
+		return Config{}, errors.New("CHECKOUT_PRICING_FINAL requires complete Razorpay test-mode credentials")
 	}
 	r2Values := []string{
 		strings.TrimSpace(os.Getenv("CLOUDFLARE_R2_ACCOUNT_ID")),

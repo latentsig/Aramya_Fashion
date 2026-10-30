@@ -9,6 +9,7 @@ func setBaseConfig(t *testing.T) {
 	t.Helper()
 	t.Setenv("DATABASE_URL", "postgres://localhost/aramya")
 	t.Setenv("CSRF_SECRET", base64.RawURLEncoding.EncodeToString(make([]byte, 32)))
+	t.Setenv("CHECKOUT_PRICING_FINAL", "false")
 	for _, name := range []string{"CLOUDFLARE_R2_ACCOUNT_ID", "CLOUDFLARE_R2_ACCESS_KEY_ID", "CLOUDFLARE_R2_SECRET_ACCESS_KEY", "CLOUDFLARE_R2_UPLOAD_BUCKET", "CLOUDFLARE_R2_APPROVED_BUCKET", "CLOUDFLARE_R2_PUBLIC_BASE_URL"} {
 		t.Setenv(name, "")
 	}
@@ -112,6 +113,7 @@ func TestLoadR2IsOptionalButMustBeCompleteAndValid(t *testing.T) {
 
 func TestLoadRazorpayAllowsOnlyCompleteTestModeCredentials(t *testing.T) {
 	setBaseConfig(t)
+	t.Setenv("CHECKOUT_PRICING_FINAL", "false")
 	cfg, err := Load()
 	if err != nil || cfg.Razorpay != nil {
 		t.Fatalf("unset Razorpay must leave payments disabled: config=%+v err=%v", cfg.Razorpay, err)
@@ -131,5 +133,30 @@ func TestLoadRazorpayAllowsOnlyCompleteTestModeCredentials(t *testing.T) {
 	t.Setenv("RAZORPAY_KEY_ID", "rzp_live_syntheticKey")
 	if _, err := Load(); err == nil {
 		t.Fatal("live-mode key ID must be rejected")
+	}
+}
+
+func TestCheckoutPricingCannotEnableWithoutRazorpayTestCredentials(t *testing.T) {
+	setBaseConfig(t)
+	t.Setenv("CHECKOUT_PRICING_FINAL", "true")
+	if _, err := Load(); err == nil {
+		t.Fatal("final checkout pricing must not enable payment without Razorpay test credentials")
+	}
+	setBaseConfig(t)
+	t.Setenv("CHECKOUT_PRICING_FINAL", "invalid")
+	if _, err := Load(); err == nil {
+		t.Fatal("invalid checkout pricing flag must fail")
+	}
+}
+
+func TestCheckoutPricingIsEnabledOnlyByExplicitOperatorSetting(t *testing.T) {
+	setBaseConfig(t)
+	t.Setenv("RAZORPAY_KEY_ID", "rzp_test_syntheticKey")
+	t.Setenv("RAZORPAY_KEY_SECRET", "synthetic-test-api-secret")
+	t.Setenv("RAZORPAY_WEBHOOK_SECRET", "synthetic-test-hook-secret")
+	t.Setenv("CHECKOUT_PRICING_FINAL", "true")
+	cfg, err := Load()
+	if err != nil || !cfg.CheckoutPricingFinal || cfg.Razorpay == nil {
+		t.Fatalf("explicit test pricing configuration rejected: final=%v razorpay=%v err=%v", cfg.CheckoutPricingFinal, cfg.Razorpay != nil, err)
 	}
 }

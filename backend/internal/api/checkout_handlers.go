@@ -12,7 +12,7 @@ import (
 	"github.com/latentsig/aramya-fashion/backend/internal/observability"
 )
 
-func registerCheckoutRoutes(v1 *gin.RouterGroup, service *checkout.Service, cartService *cart.Service, authService *auth.Service, secure bool, sameSite http.SameSite, logger *slog.Logger, metrics *observability.Metrics) {
+func registerCheckoutRoutes(v1 *gin.RouterGroup, service *checkout.Service, cartService *cart.Service, authService *auth.Service, secure bool, sameSite http.SameSite, logger *slog.Logger, metrics *observability.Metrics, paymentAvailable bool) {
 	api := v1.Group("/checkout")
 	api.POST("/quote", func(c *gin.Context) {
 		userID, guestToken, err := cartOwner(c, authService)
@@ -30,6 +30,10 @@ func registerCheckoutRoutes(v1 *gin.RouterGroup, service *checkout.Service, cart
 			return
 		}
 		setGuestCartCookie(c, nextToken, secure, sameSite)
+		if paymentAvailable {
+			quote.QuoteStatus = "final"
+			quote.PaymentAvailable = true
+		}
 		c.JSON(http.StatusOK, gin.H{"data": quote})
 	})
 	api.POST("/orders", func(c *gin.Context) {
@@ -81,7 +85,11 @@ func registerCheckoutRoutes(v1 *gin.RouterGroup, service *checkout.Service, cart
 		if replayed {
 			status = http.StatusOK
 		}
-		c.JSON(status, gin.H{"data": order, "paymentAvailable": false, "notice": "Order saved as pending payment. Online payment is not configured in this environment."})
+		notice := "Order saved as pending payment. Online payment is not configured in this environment."
+		if paymentAvailable {
+			notice = "Order saved. Start the Razorpay test checkout to complete payment."
+		}
+		c.JSON(status, gin.H{"data": order, "paymentAvailable": paymentAvailable, "notice": notice})
 	})
 }
 
