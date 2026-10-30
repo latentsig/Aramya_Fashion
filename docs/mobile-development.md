@@ -4,7 +4,7 @@
 
 The public website and PWA stay in `frontend/` (React + TypeScript). The Android/mobile client lives in `mobile/` (React Native + TypeScript + Expo SDK 58). Expo Router provides file-based screens and native tabs. Both clients call the same Go `/api/v1` service; the mobile client uses the server's live catalog and variant IDs, and it does not embed product binaries in its repository or app bundle.
 
-The native client currently implements home, collections, product detail, guest bag operations, and a Studio tab for appointment and made-to-order requests. Studio submissions call the PostgreSQL-backed API with CSRF protection and an idempotency key that is retained for retries until the form changes or succeeds. Custom requests are inquiries only; they do not create orders or charges. Cart mutations use CSRF tokens and include the API cookie jar. Native HTTP-only cookie retention still needs an Android emulator/device test. Native checkout, login/session flows, and Razorpay's supported mobile SDK flow have not been implemented yet.
+The native client currently implements home, collections, product detail, guest bag operations, a Studio tab, and a basic demo checkout. Checkout validates contact and delivery details, requests a server quote, and creates a PostgreSQL-backed pending order with CSRF protection and an idempotency key. It does not collect payment or mark the order paid. Login/session flows and Razorpay's supported mobile SDK flow have not been implemented. Cart and checkout rely on API cookies; Android cookie retention still needs an emulator/device test.
 
 ## Local Windows setup
 
