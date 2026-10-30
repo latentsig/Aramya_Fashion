@@ -4,7 +4,7 @@
 
 The public website and PWA stay in `frontend/` (React + TypeScript). The Android/mobile client lives in `mobile/` (React Native + TypeScript + Expo SDK 58). Expo Router provides file-based screens and native tabs. Both clients call the same Go `/api/v1` service; the mobile client uses the server's live catalog and variant IDs, and it does not embed product binaries in its repository or app bundle.
 
-The native client currently implements home, collections, product detail, and guest bag operations. Cart mutations use CSRF tokens and include the API cookie jar. Native HTTP-only cookie retention still needs an Android emulator/device test. Native checkout, login/session flows, Razorpay's supported mobile SDK flow, appointments, and custom-order submissions have not been implemented yet.
+The native client currently implements home, collections, product detail, guest bag operations, and a Studio tab for appointment and made-to-order requests. Studio submissions call the PostgreSQL-backed API with CSRF protection and an idempotency key that is retained for retries until the form changes or succeeds. Custom requests are inquiries only; they do not create orders or charges. Cart mutations use CSRF tokens and include the API cookie jar. Native HTTP-only cookie retention still needs an Android emulator/device test. Native checkout, login/session flows, and Razorpay's supported mobile SDK flow have not been implemented yet.
 
 ## Local Windows setup
 
@@ -29,6 +29,8 @@ npx expo run:android
 ```
 
 The debug APK is produced under ignored `mobile/android/app/build/outputs/apk/debug/`. The release AAB should be built with the documented EAS or local Gradle release workflow after signing configuration is set up. Never commit keystores or passwords. `expo export --platform android` validates the JavaScript/native-module bundle but does not produce an APK.
+
+The native Studio screen was checked with `npm run lint`, `npx tsc --noEmit`, and `npx expo export --platform android`; the Android Hermes bundle compiled successfully. A device/emulator run and debug APK build still require Android SDK Platform Tools and SDK platforms on the development machine.
 
 ## Payment and authentication requirements
 

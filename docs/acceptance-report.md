@@ -169,3 +169,10 @@ This report tracks verified milestones and does not claim full e-commerce accept
 - Added guarded PostgreSQL integration coverage for expiration, reserved/on-hand counters, release ledger rows, idempotent second passes, and protection of orders with pending payments. It requires `ARAMYA_TEST_DATABASE_URL`, `ARAMYA_TEST_DATABASE_CONFIRM=ephemeral-local`, and a loopback host; it skips when no DSN is provided.
 - `go test -count=1 ./...` passed and `go vet ./...` passed. The guarded integration test skipped because no explicitly designated ephemeral test database was configured, so these database effects are not claimed as locally exercised in this run.
 - Razorpay checkout is still unavailable (`paymentAvailable: false`); provider reconciliation is not yet implemented. Until then, reservations tied to any unresolved payment attempt remain held for operator/reconciliation handling. See [local setup](local-setup.md).
+
+## Native Studio requests — implementation and source validation
+
+- Added a native Studio tab with separate appointment and custom-garment inquiry forms. Submissions use the existing `/api/v1/appointments` and `/api/v1/custom-order-requests` endpoints, which persist to PostgreSQL. The client obtains a CSRF token and retains an idempotency key for retries while the request contents stay unchanged.
+- Added required contact/name validation, server-compatible field limits, progress/error/success feedback, and accessible native input labels and tab states. Custom-garment requests remain quotation inquiries and cannot trigger payment.
+- `npm run lint` passed and `npx tsc --noEmit` passed in `mobile/`. `npx expo export --platform android --output-dir ..\.tmp-mobile-export-check` passed; Metro bundled 1,348 modules and generated an Android Hermes bundle. Temporary export output was removed after verification.
+- Android SDK/emulator and actual API-backed device submission remain unverified; bundle export is not an APK or device test.
