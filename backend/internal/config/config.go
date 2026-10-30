@@ -24,6 +24,12 @@ type R2Config struct {
 	PublicBaseURL   string
 }
 
+type RazorpayConfig struct {
+	KeyID         string
+	KeySecret     string
+	WebhookSecret string
+}
+
 type Config struct {
 	Address               string
 	DatabaseURL           string
@@ -36,6 +42,7 @@ type Config struct {
 	CSRFSecret            []byte
 	MetricsBearerToken    string
 	R2                    *R2Config
+	Razorpay              *RazorpayConfig
 }
 
 func Load() (Config, error) {
@@ -60,6 +67,26 @@ func Load() (Config, error) {
 		return Config{}, errors.New("CSRF_SECRET must be base64url encoding of at least 32 random bytes")
 	}
 	cfg.CSRFSecret = csrfSecret
+	razorpayValues := []string{
+		strings.TrimSpace(os.Getenv("RAZORPAY_KEY_ID")),
+		strings.TrimSpace(os.Getenv("RAZORPAY_KEY_SECRET")),
+		strings.TrimSpace(os.Getenv("RAZORPAY_WEBHOOK_SECRET")),
+	}
+	configuredRazorpayValues := 0
+	for _, value := range razorpayValues {
+		if value != "" {
+			configuredRazorpayValues++
+		}
+	}
+	if configuredRazorpayValues != 0 {
+		if configuredRazorpayValues != len(razorpayValues) {
+			return Config{}, errors.New("RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, and RAZORPAY_WEBHOOK_SECRET must be configured together")
+		}
+		if !strings.HasPrefix(razorpayValues[0], "rzp_test_") || len(razorpayValues[0]) < len("rzp_test_x") || len(razorpayValues[1]) < 8 || len(razorpayValues[2]) < 8 {
+			return Config{}, errors.New("Razorpay configuration must use a test-mode key ID and non-empty API and webhook secrets")
+		}
+		cfg.Razorpay = &RazorpayConfig{KeyID: razorpayValues[0], KeySecret: razorpayValues[1], WebhookSecret: razorpayValues[2]}
+	}
 	r2Values := []string{
 		strings.TrimSpace(os.Getenv("CLOUDFLARE_R2_ACCOUNT_ID")),
 		strings.TrimSpace(os.Getenv("CLOUDFLARE_R2_ACCESS_KEY_ID")),

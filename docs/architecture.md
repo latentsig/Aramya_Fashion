@@ -34,7 +34,7 @@ PostgreSQL is authoritative for catalog, identity, cart, inventory, orders, paym
 
 ## Not implemented or not yet verified
 
-- Razorpay test order creation, signature/webhook verification, reconciliation, and refunds. Current checkout only persists pending-payment orders and explicitly reports payment unavailable.
+- Razorpay checkout lifecycle: test-mode REST client and checkout/webhook signature primitives exist, but checkout only persists pending-payment orders and explicitly reports payment unavailable. Payment attempt persistence, authoritative capture confirmation, webhook intake/deduplication, reconciliation and refunds remain outstanding.
 - Live Cloudflare R2 uploads/migration; product images still reference preserved repository assets. The current source inventory is in `docs/asset-migration-manifest.json`. See `docs/r2-media-migration.md` for upload design and configuration.
 - Google sign-in, password reset/email verification, customer quotation approval, and notification delivery.
 - Local monitoring stack has parsed configuration but has not been run against a live API scrape in this environment. Production metrics ingress, alert delivery, and cloud monitoring still need deployment configuration.

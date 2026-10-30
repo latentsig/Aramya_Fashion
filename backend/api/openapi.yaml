@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Aramya Fashion API
   version: 0.1.0
-  description: Database-backed catalog, customer session, persistent cart, provisional checkout, customer order history, and order detail APIs. Payment and fulfillment integrations remain unimplemented.
+  description: Database-backed catalog, customer session, persistent cart, provisional pending-order checkout, customer order history, and order detail APIs. Razorpay checkout and fulfillment payment integration remain disabled.
 servers:
   - url: http://localhost:18080
 paths:
