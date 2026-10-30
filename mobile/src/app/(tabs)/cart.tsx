@@ -64,7 +64,8 @@ export default function CartScreen() {
           })}
           <View style={styles.summary}><Text style={styles.summaryLabel}>SUBTOTAL</Text><Text style={styles.summaryPrice}>{formatPrice(cart.subtotalPaise)}</Text></View>
           <Text style={styles.note}>Delivery and applicable taxes are confirmed at checkout.</Text>
-          <Text style={styles.checkoutNote}>Secure checkout requires an active connection.</Text>
+          <Link href="/checkout" asChild><Pressable style={styles.checkoutButton}><Text style={styles.checkoutButtonText}>CONTINUE TO CHECKOUT  ↗</Text></Pressable></Link>
+          <Text style={styles.checkoutNote}>Demo checkout saves a pending order. No payment is collected.</Text>
         </> : !error && !loading && <View style={styles.empty}>
           <Text style={styles.emptyTitle}>Your bag is waiting for a little wonder.</Text>
           <Text style={styles.emptyCopy}>Explore the collection and find the style that feels like you.</Text>
@@ -85,5 +86,6 @@ const styles = StyleSheet.create({
   summary: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 22, marginTop: 4, borderTopWidth: 1, borderTopColor: Brand.line }, summaryLabel: { color: Brand.ink, fontSize: 9, letterSpacing: 1.1 }, summaryPrice: { color: Brand.ink, fontFamily: 'Georgia', fontSize: 21 }, note: { color: Brand.muted, fontSize: 9, marginTop: 10 }, checkoutNote: { color: Brand.red, fontSize: 9, marginTop: 18 },
   empty: { marginTop: 80, paddingHorizontal: 20, alignItems: 'center' }, emptyTitle: { color: Brand.ink, fontFamily: 'Georgia', fontSize: 23, textAlign: 'center' }, emptyCopy: { color: Brand.muted, fontSize: 11, lineHeight: 18, textAlign: 'center', marginTop: 11 },
   shopButton: { marginTop: 25, minHeight: 45, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center', backgroundColor: Brand.red }, shopButtonText: { color: Brand.white, fontSize: 9, letterSpacing: 1 },
+  checkoutButton: { marginTop: 22, minHeight: 48, alignItems: 'center', justifyContent: 'center', backgroundColor: Brand.red }, checkoutButtonText: { color: Brand.white, fontSize: 9, letterSpacing: 1 },
   errorBox: { marginTop: 16, padding: 13, backgroundColor: '#F2E5E3' }, error: { color: Brand.red, fontSize: 10 }, retry: { color: Brand.red, marginTop: 10, fontSize: 8, letterSpacing: 1 },
 });
