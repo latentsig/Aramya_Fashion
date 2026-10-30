@@ -22,6 +22,12 @@
 .admin-catalog-form textarea{resize:vertical;line-height:1.65}
 .admin-selected-image{display:flex;align-items:center;gap:13px;padding:10px;background:#efe9e2;color:var(--muted);font-size:10px;overflow-wrap:anywhere}
 .admin-selected-image img{width:60px;height:72px;object-fit:cover}
+.admin-media-upload{display:grid;gap:8px;padding:14px;background:#efe9e2;border:1px solid var(--line)}
+.admin-media-upload label{display:grid;gap:9px;color:var(--ink);font-size:10px;letter-spacing:.06em;text-transform:uppercase}
+.admin-media-upload input{width:100%;min-height:38px;color:var(--muted);font:11px var(--sans);letter-spacing:normal;text-transform:none}
+.admin-media-upload p{margin:0;color:var(--muted);font-size:10px;line-height:1.6;overflow-wrap:anywhere}
+.admin-media-upload p[role=alert]{color:var(--red)}
+.admin-media-upload p[role=status]{color:#28634b}
 .admin-variant-editor{display:grid;gap:14px;margin:0;padding:15px;border:1px solid var(--line)}
 .admin-variant-editor legend{padding:0 7px;font-size:10px;letter-spacing:.08em;text-transform:uppercase}
 .admin-variant-editor>p,.admin-version-note{margin:0;color:var(--muted);font-size:10px;line-height:1.7}

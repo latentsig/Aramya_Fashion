@@ -48,8 +48,8 @@ export function ProductPage() {
       </nav>
       <div className="product-detail-layout">
         <section className="product-gallery" aria-label={`${product.name} images`}>
-          <div className="product-detail-image"><img src={imageUrl(activeImage.imageKey.split(/[\\/]/).at(-1) ?? activeImage.imageKey)} alt={activeImage.altText || product.name} fetchPriority="high" /></div>
-          {images.length > 1 && <div className="product-gallery-thumbnails">{images.map((image, index) => <button key={`${image.imageKey}-${index}`} type="button" className={index === selectedImageIndex ? 'selected' : ''} onClick={() => setSelectedImageIndex(index)} aria-label={`Show image ${index + 1}`} aria-pressed={index === selectedImageIndex}><img src={imageUrl(image.imageKey.split(/[\\/]/).at(-1) ?? image.imageKey)} alt="" /></button>)}</div>}
+          <div className="product-detail-image"><img src={imageUrl(activeImage.imageKey)} alt={activeImage.altText || product.name} fetchPriority="high" /></div>
+          {images.length > 1 && <div className="product-gallery-thumbnails">{images.map((image, index) => <button key={`${image.imageKey}-${index}`} type="button" className={index === selectedImageIndex ? 'selected' : ''} onClick={() => setSelectedImageIndex(index)} aria-label={`Show image ${index + 1}`} aria-pressed={index === selectedImageIndex}><img src={imageUrl(image.imageKey)} alt="" /></button>)}</div>}
         </section>
         <section className="product-detail-copy">
           <p className="eyebrow">{product.label.toUpperCase()}</p>

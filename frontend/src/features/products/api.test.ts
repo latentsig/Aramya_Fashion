@@ -1,8 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { fetchCatalogProducts } from './api';
+import { imageUrl } from './catalog';
 
 describe('fetchCatalogProducts', () => {
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
 
   it('maps the database API response to the storefront product model', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ data: [{
@@ -18,5 +19,11 @@ describe('fetchCatalogProducts', () => {
   it('rejects unsuccessful API responses', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('', { status: 503 })));
     await expect(fetchCatalogProducts()).rejects.toThrow('Catalog request failed (503)');
+  });
+
+  it('resolves approved object keys to the configured media origin without flattening the path', () => {
+    vi.stubEnv('VITE_MEDIA_BASE_URL', 'https://media.example.test/');
+    expect(imageUrl('products/sarees/a1b2c3.webp')).toBe('https://media.example.test/products/sarees/a1b2c3.webp');
+    expect(imageUrl('image assests/saree1.jpg')).toBe('/media/saree1.jpg');
   });
 });

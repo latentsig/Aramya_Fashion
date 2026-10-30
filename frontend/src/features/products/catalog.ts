@@ -16,6 +16,12 @@ export interface Product {
   priceRupees: number;
 }
 
+export function imageReferenceFromKey(key: string): string {
+  const normalized = key.replaceAll('\\', '/');
+  if (/^https?:\/\//i.test(normalized) || /^(products|brand|collections)\//.test(normalized)) return normalized;
+  return normalized.split('/').at(-1) ?? normalized;
+}
+
 export const categories: Category[] = [
   { id: 'sarees', title: 'Sarees', subtitle: 'A drape for every celebration', image: 'saree1.jpg' },
   { id: 'bridal', title: 'Bridal & Lehengas', subtitle: 'For the day you will always remember', image: 'bridal lehanga.jpg' },
@@ -67,7 +73,14 @@ export const products: Product[] = [
 ];
 
 export function imageUrl(fileName: string): string {
-  return `/media/${encodeURIComponent(fileName)}`;
+  if (/^https?:\/\//i.test(fileName)) return fileName;
+  const normalizedKey = fileName.replaceAll('\\', '/');
+  const mediaBase = (import.meta.env.VITE_MEDIA_BASE_URL ?? '').replace(/\/$/, '');
+  if (mediaBase && /^(products|brand|collections)\//.test(normalizedKey)) {
+    return `${mediaBase}/${normalizedKey.split('/').map(encodeURIComponent).join('/')}`;
+  }
+  const legacyFileName = normalizedKey.split('/').at(-1) ?? normalizedKey;
+  return `/media/${encodeURIComponent(legacyFileName)}`;
 }
 
 export function formatPrice(priceRupees: number): string {
