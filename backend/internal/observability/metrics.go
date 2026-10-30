@@ -13,11 +13,12 @@ import (
 // Metrics owns a process-local registry so tests and multiple service instances
 // never collide through Prometheus' global default registry.
 type Metrics struct {
-	registry      *prometheus.Registry
-	requests      *prometheus.CounterVec
-	requestTime   *prometheus.HistogramVec
-	databaseReady prometheus.Gauge
-	orderAttempts *prometheus.CounterVec
+	registry              *prometheus.Registry
+	requests              *prometheus.CounterVec
+	requestTime           *prometheus.HistogramVec
+	databaseReady         prometheus.Gauge
+	orderAttempts         *prometheus.CounterVec
+	inventoryReservations *prometheus.CounterVec
 }
 
 func New() *Metrics {
@@ -45,8 +46,13 @@ func New() *Metrics {
 			Name:      "order_creation_attempts_total",
 			Help:      "Checkout order creation attempts by bounded outcome.",
 		}, []string{"outcome"}),
+		inventoryReservations: prometheus.NewCounterVec(prometheus.CounterOpts{
+			Namespace: "aramya",
+			Name:      "inventory_reservation_attempts_total",
+			Help:      "Tracked inventory reservation attempts by bounded outcome.",
+		}, []string{"outcome"}),
 	}
-	registry.MustRegister(m.requests, m.requestTime, m.databaseReady, m.orderAttempts, prometheus.NewGoCollector())
+	registry.MustRegister(m.requests, m.requestTime, m.databaseReady, m.orderAttempts, m.inventoryReservations, prometheus.NewGoCollector())
 	return m
 }
 
@@ -84,5 +90,14 @@ func (m *Metrics) RecordOrderAttempt(outcome string) {
 	switch outcome {
 	case "created", "replayed", "rejected", "failed":
 		m.orderAttempts.WithLabelValues(outcome).Inc()
+	}
+}
+
+// RecordInventoryReservation accepts only fixed outcomes, keeping metrics free
+// of identifiers, PII, SQL errors, and other untrusted labels.
+func (m *Metrics) RecordInventoryReservation(outcome string) {
+	switch outcome {
+	case "reserved", "rejected", "failed":
+		m.inventoryReservations.WithLabelValues(outcome).Inc()
 	}
 }
