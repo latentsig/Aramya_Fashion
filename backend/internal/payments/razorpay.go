@@ -132,6 +132,35 @@ func (c *RazorpayClient) FetchPayment(ctx context.Context, paymentID string) (Pa
 	return result, nil
 }
 
+// FetchOrderPayments uses Razorpay's order-scoped payment collection for
+// reconciliation. The request asks for the largest supported bounded page.
+func (c *RazorpayClient) FetchOrderPayments(ctx context.Context, orderID string) ([]Payment, error) {
+	if !providerIDPattern.MatchString(orderID) || !strings.HasPrefix(orderID, "order_") {
+		return nil, ErrInvalidRequest
+	}
+	var result struct {
+		Entity string    `json:"entity"`
+		Count  int       `json:"count"`
+		Items  []Payment `json:"items"`
+	}
+	if err := c.doJSON(ctx, http.MethodGet, "/orders/"+url.PathEscape(orderID)+"/payments?count=100", nil, &result); err != nil {
+		return nil, err
+	}
+	if result.Entity != "collection" || result.Count < 0 || result.Count != len(result.Items) || result.Count > 100 {
+		return nil, ErrProviderResponse
+	}
+	for _, payment := range result.Items {
+		if !providerIDPattern.MatchString(payment.ID) || !strings.HasPrefix(payment.ID, "pay_") || payment.OrderID != orderID || payment.Amount <= 0 || payment.Currency != "INR" ||
+			(payment.Status != "created" && payment.Status != "authorized" && payment.Status != "captured" && payment.Status != "failed" && payment.Status != "refunded") {
+			return nil, ErrProviderResponse
+		}
+		if payment.Status == "captured" && !payment.Captured {
+			return nil, ErrProviderResponse
+		}
+	}
+	return result.Items, nil
+}
+
 func (c *RazorpayClient) VerifyCheckoutSignature(orderID, paymentID, signature string) bool {
 	if !strings.HasPrefix(orderID, "order_") || !providerIDPattern.MatchString(orderID) ||
 		!strings.HasPrefix(paymentID, "pay_") || !providerIDPattern.MatchString(paymentID) || !checkoutSignatureHex.MatchString(signature) {

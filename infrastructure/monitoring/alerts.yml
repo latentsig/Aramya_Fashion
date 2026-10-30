@@ -47,3 +47,12 @@ groups:
         annotations:
           summary: Razorpay webhook processing failed
           description: Check sanitized API errors, PostgreSQL readiness, and webhook transaction health; Razorpay may retry failed deliveries.
+
+      - alert: AramyaPaymentReconciliationErrors
+        expr: sum(increase(aramya_payment_reconciliation_attempts_total{outcome="error"}[15m])) > 0
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: Razorpay payment reconciliation encountered errors
+          description: Check API connectivity, provider availability, and the payment attempt state before manually changing an order.

@@ -177,6 +177,13 @@ This report tracks verified milestones and does not claim full e-commerce accept
 - `go test -count=1 ./...` and `go vet ./...` passed. Monitoring alerts YAML and dashboard JSON parsed; dashboard contains seven panels. The local monitoring stack was not launched because Docker Desktop's Linux engine is not running.
 - Remaining: validate a live Prometheus scrape and alert delivery when Docker/monitoring credentials are configured.
 
+## Razorpay payment reconciliation — locally verified; database/provider integration guarded
+
+- Added the official order-scoped payment lookup, a one-minute worker, age/batch limits, expiring database leases with `SKIP LOCKED`, per-attempt backoff, provider amount/currency/order checks, and reuse of the atomic capture/inventory transition. Additional captures are retained for operator review without overwriting the first payment reference; guarded webhook integration coverage checks this. Reconciliation does not claim an HMAC signature was verified.
+- Added migration `0004_payment_reconciliation`, provider contract and state-selection unit tests, guarded PostgreSQL integration coverage, bounded reconciliation metrics, dashboard panel, failure alert, and workflow documentation.
+- The Razorpay order-payment contract test and pure state-selection tests passed. `go test -count=1 ./...` and `go vet ./...` passed. Monitoring alerts YAML and dashboard JSON parsed with eight panels; OpenAPI YAML still parses with 38 paths; `git diff --check` passed.
+- The migration was reviewed but not applied because Docker's PostgreSQL service is not running and no disposable local `DATABASE_URL` is configured. Guarded webhook/reconciliation PostgreSQL tests therefore skip. No real Razorpay credentials are configured. Live provider reconciliation remains unverified.
+
 ## Tracked checkout stock reservations — verified by unit/build checks; database integration guarded
 
 - Tracked inventory is reserved in the same PostgreSQL transaction that creates a pending order. Reservations expire after 20 minutes; order creation rolls back if the available-stock check fails. Each reservation writes an inventory ledger movement.

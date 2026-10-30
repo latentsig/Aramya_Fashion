@@ -13,13 +13,14 @@ import (
 // Metrics owns a process-local registry so tests and multiple service instances
 // never collide through Prometheus' global default registry.
 type Metrics struct {
-	registry              *prometheus.Registry
-	requests              *prometheus.CounterVec
-	requestTime           *prometheus.HistogramVec
-	databaseReady         prometheus.Gauge
-	orderAttempts         *prometheus.CounterVec
-	inventoryReservations *prometheus.CounterVec
-	paymentWebhooks       *prometheus.CounterVec
+	registry               *prometheus.Registry
+	requests               *prometheus.CounterVec
+	requestTime            *prometheus.HistogramVec
+	databaseReady          prometheus.Gauge
+	orderAttempts          *prometheus.CounterVec
+	inventoryReservations  *prometheus.CounterVec
+	paymentWebhooks        *prometheus.CounterVec
+	paymentReconciliations *prometheus.CounterVec
 }
 
 func New() *Metrics {
@@ -57,8 +58,13 @@ func New() *Metrics {
 			Name:      "payment_webhook_events_total",
 			Help:      "Razorpay webhook deliveries by bounded processing outcome.",
 		}, []string{"outcome"}),
+		paymentReconciliations: prometheus.NewCounterVec(prometheus.CounterOpts{
+			Namespace: "aramya",
+			Name:      "payment_reconciliation_attempts_total",
+			Help:      "Aged Razorpay payment reconciliation outcomes.",
+		}, []string{"outcome"}),
 	}
-	registry.MustRegister(m.requests, m.requestTime, m.databaseReady, m.orderAttempts, m.inventoryReservations, m.paymentWebhooks, prometheus.NewGoCollector())
+	registry.MustRegister(m.requests, m.requestTime, m.databaseReady, m.orderAttempts, m.inventoryReservations, m.paymentWebhooks, m.paymentReconciliations, prometheus.NewGoCollector())
 	return m
 }
 
@@ -114,5 +120,12 @@ func (m *Metrics) RecordPaymentWebhook(outcome string) {
 	switch outcome {
 	case "processed", "duplicate", "invalid_signature", "invalid_payload", "conflict", "failed", "rejected_headers", "too_large":
 		m.paymentWebhooks.WithLabelValues(outcome).Inc()
+	}
+}
+
+func (m *Metrics) RecordPaymentReconciliation(outcome string) {
+	switch outcome {
+	case "captured", "payment_failed", "pending", "error":
+		m.paymentReconciliations.WithLabelValues(outcome).Inc()
 	}
 }

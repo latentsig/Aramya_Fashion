@@ -26,6 +26,7 @@ type CheckoutProvider interface {
 	CreateOrder(context.Context, OrderRequest) (Order, error)
 	VerifyCheckoutSignature(orderID, paymentID, signature string) bool
 	FetchPayment(context.Context, string) (Payment, error)
+	FetchOrderPayments(context.Context, string) ([]Payment, error)
 	VerifyWebhookSignature([]byte, string) bool
 }
 
@@ -219,7 +220,7 @@ func (s *CheckoutPaymentService) Verify(ctx context.Context, orderID, customerID
 		return PaymentResult{}, err
 	}
 	defer func() { _ = tx.Rollback(context.Background()) }()
-	result, err := s.applyProviderPaymentTx(applyCtx, tx, attemptID, orderID, orderNumber, paymentID, nextStatus, "razorpay-callback")
+	result, err := s.applyProviderPaymentTx(applyCtx, tx, attemptID, orderID, orderNumber, paymentID, nextStatus, "razorpay-callback", true)
 	if err != nil {
 		return PaymentResult{}, err
 	}
@@ -229,15 +230,23 @@ func (s *CheckoutPaymentService) Verify(ctx context.Context, orderID, customerID
 	return result, nil
 }
 
-func (s *CheckoutPaymentService) applyProviderPaymentTx(ctx context.Context, tx pgx.Tx, attemptID, orderID, orderNumber, paymentID, nextStatus, requestID string) (PaymentResult, error) {
-	var attemptStatus, orderStatus string
-	if err := tx.QueryRow(ctx, `SELECT pa.status,o.status FROM payment_attempts pa JOIN orders o ON o.id=pa.order_id
-		WHERE pa.id=$1 FOR UPDATE OF pa,o`, attemptID).Scan(&attemptStatus, &orderStatus); err != nil {
+func (s *CheckoutPaymentService) applyProviderPaymentTx(ctx context.Context, tx pgx.Tx, attemptID, orderID, orderNumber, paymentID, nextStatus, requestID string, signatureVerified bool) (PaymentResult, error) {
+	var attemptStatus, existingPaymentID, orderStatus string
+	if err := tx.QueryRow(ctx, `SELECT pa.status,COALESCE(pa.provider_payment_id,''),o.status FROM payment_attempts pa JOIN orders o ON o.id=pa.order_id
+		WHERE pa.id=$1 FOR UPDATE OF pa,o`, attemptID).Scan(&attemptStatus, &existingPaymentID, &orderStatus); err != nil {
 		return PaymentResult{}, err
 	}
-	if attemptStatus != "captured" || nextStatus == "captured" {
+	additionalCapture := attemptStatus == "captured" && nextStatus == "captured" && existingPaymentID != "" && existingPaymentID != paymentID
+	if additionalCapture {
+		if _, err := tx.Exec(ctx, `INSERT INTO audit_logs(action,entity_type,entity_id,request_id,metadata)
+			SELECT 'payment.additional_capture_review_required','order',$1,$3,jsonb_build_object('paymentAttemptId',$2,'additionalPaymentId',$4)
+			WHERE NOT EXISTS (SELECT 1 FROM audit_logs WHERE action='payment.additional_capture_review_required' AND entity_id=$1 AND metadata->>'additionalPaymentId'=$4)`, orderID, attemptID, requestID, paymentID); err != nil {
+			return PaymentResult{}, err
+		}
+	} else if attemptStatus != "captured" || nextStatus == "captured" {
 		if _, err := tx.Exec(ctx, `UPDATE payment_attempts SET status=$2,provider_payment_id=$3,
-			signature_verified_at=now(),failure_code=CASE WHEN $2='failed' THEN 'provider_failed' ELSE '' END,updated_at=now() WHERE id=$1`, attemptID, nextStatus, paymentID); err != nil {
+			signature_verified_at=CASE WHEN $4 THEN now() ELSE signature_verified_at END,
+			failure_code=CASE WHEN $2='failed' THEN 'provider_failed' ELSE '' END,updated_at=now() WHERE id=$1`, attemptID, nextStatus, paymentID, signatureVerified); err != nil {
 			return PaymentResult{}, err
 		}
 		attemptStatus = nextStatus

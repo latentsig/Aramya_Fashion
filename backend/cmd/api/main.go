@@ -109,8 +109,9 @@ func main() {
 		}
 	}
 
+	apiMetrics := observability.New()
 	router := api.NewRouter(api.RouterConfig{
-		Metrics:            observability.New(),
+		Metrics:            apiMetrics,
 		MetricsBearerToken: cfg.MetricsBearerToken,
 		Catalog:            catalog.NewRepository(pool, cfg.QueryTimeout),
 		Auth:               authService,
@@ -148,6 +149,7 @@ func main() {
 	stopCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	go checkout.RunReservationExpirationWorker(stopCtx, checkoutService, logger)
+	go payments.RunReconciliationWorker(stopCtx, checkoutPayments, logger, apiMetrics.RecordPaymentReconciliation)
 	select {
 	case err := <-serverErrors:
 		if !errors.Is(err, http.ErrServerClosed) {
