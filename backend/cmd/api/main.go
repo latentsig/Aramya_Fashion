@@ -71,6 +71,11 @@ func main() {
 		logger.Error("admin_orders_initialization_failed", "error_type", fmt.Sprintf("%T", err))
 		os.Exit(1)
 	}
+	adminOverviewRepository, err := admin.NewOverviewRepository(pool, cfg.QueryTimeout)
+	if err != nil {
+		logger.Error("admin_overview_initialization_failed", "error_type", fmt.Sprintf("%T", err))
+		os.Exit(1)
+	}
 	var mediaService *media.Service
 	if cfg.R2 != nil {
 		r2Store, storeErr := storage.NewR2Store(storage.R2Config{
@@ -97,6 +102,7 @@ func main() {
 		Checkout:           checkoutService,
 		Orders:             orderRepository,
 		AdminOrders:        adminOrderRepository,
+		AdminOverview:      adminOverviewRepository,
 		AdminMedia:         mediaService,
 		StudioRequests:     appointments.NewRepository(pool, cfg.QueryTimeout),
 		AdminStudio:        admin.NewStudioRepository(pool, cfg.QueryTimeout),

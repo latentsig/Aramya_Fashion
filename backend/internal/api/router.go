@@ -30,6 +30,7 @@ type RouterConfig struct {
 	AdminInventory        AdminInventoryRepository
 	AdminCatalog          AdminCatalogRepository
 	AdminOrders           AdminOrderRepository
+	AdminOverview         AdminOverviewReader
 	AdminMedia            AdminMediaService
 	AdminIdentity         AdminIdentity
 	Ready                 func() error
@@ -104,6 +105,9 @@ func NewRouter(cfg RouterConfig) *gin.Engine {
 	}
 	if cfg.AdminOrders != nil {
 		registerAdminOrderRoutes(v1, cfg.AdminOrders, cfg.AdminIdentity, cfg.Logger)
+	}
+	if cfg.AdminOverview != nil {
+		registerAdminOverviewRoute(v1, cfg.AdminOverview, cfg.AdminIdentity, cfg.Logger)
 	}
 	registerAdminMediaRoutes(v1, cfg.AdminMedia, cfg.AdminIdentity, cfg.Logger)
 	v1.GET("/categories", func(c *gin.Context) {

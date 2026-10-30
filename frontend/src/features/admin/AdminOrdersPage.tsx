@@ -15,7 +15,7 @@ function errorMessage(error: unknown) {
   if (error instanceof AdminApiError && error.status === 409) return `${error.message}. Refresh the order before trying again.`;
   return error instanceof Error ? error.message : 'The order request could not be completed.';
 }
-function adminTabs() { return <nav className="admin-studio-tabs" aria-label="Admin sections"><Link to="/admin/products">Products</Link><Link to="/admin/categories">Categories</Link><Link to="/admin/inventory">Inventory</Link><Link aria-current="page" to="/admin/orders">Orders</Link><Link to="/admin/appointments">Studio requests</Link></nav>; }
+function adminTabs() { return <nav className="admin-studio-tabs" aria-label="Admin sections"><Link to="/admin">Overview</Link><Link to="/admin/products">Products</Link><Link to="/admin/categories">Categories</Link><Link to="/admin/inventory">Inventory</Link><Link aria-current="page" to="/admin/orders">Orders</Link><Link to="/admin/appointments">Studio requests</Link></nav>; }
 
 export function AdminOrdersPage() {
   const [orders, setOrders] = useState<AdminOrder[]>([]);

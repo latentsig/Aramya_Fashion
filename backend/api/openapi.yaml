@@ -20,6 +20,19 @@ paths:
           description: Database is reachable
         '503':
           description: Database is unavailable
+  /api/v1/admin/overview:
+    get:
+      summary: Read the administrator business overview
+      description: Gross sales include attempts with server-verified captured, partially_refunded, or refunded status. Net sales subtract processed refunds. The response contains no customer contact details.
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200':
+          description: Current product, order, captured payment, studio queue, and recent order summaries
+          content:
+            application/json:
+              schema: { type: object, required: [data], properties: { data: { $ref: '#/components/schemas/AdminOverview' } } }
+        '401': { description: Administrator session is required }
+        '403': { description: Session does not have the admin role }
   /api/v1/admin/orders:
     get:
       summary: Search orders for administrators
@@ -827,6 +840,32 @@ components:
       in: cookie
       name: aramya_csrf
   schemas:
+    AdminOverview:
+      type: object
+      required: [activeProducts, totalOrders, pendingPaymentOrders, grossCapturedPaise, processedRefundsPaise, netSalesPaise, capturedPayments, requestedAppointments, openCustomOrders, recentOrders]
+      properties:
+        activeProducts: { type: integer, minimum: 0 }
+        totalOrders: { type: integer, minimum: 0 }
+        pendingPaymentOrders: { type: integer, minimum: 0 }
+        grossCapturedPaise: { type: integer, minimum: 0, description: Sum of payment attempts confirmed captured, including later-refunded payments }
+        processedRefundsPaise: { type: integer, minimum: 0, description: Sum of provider-processed refunds }
+        netSalesPaise: { type: integer, description: Gross captured amount minus processed refunds }
+        capturedPayments: { type: integer, minimum: 0 }
+        requestedAppointments: { type: integer, minimum: 0 }
+        openCustomOrders: { type: integer, minimum: 0 }
+        recentOrders:
+          type: array
+          maxItems: 8
+          items:
+            type: object
+            required: [orderNumber, status, paymentStatus, currency, totalPaise, createdAt]
+            properties:
+              orderNumber: { type: string }
+              status: { type: string }
+              paymentStatus: { type: string }
+              currency: { type: string, minLength: 3, maxLength: 3 }
+              totalPaise: { type: integer, minimum: 0 }
+              createdAt: { type: string, format: date-time }
     MediaUploadIntentRequest:
       type: object
       required: [originalFilename, mimeType, byteSize, sha256, altText, category]

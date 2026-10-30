@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import { SiteHeader } from '../components/layout/SiteHeader';
 import { SiteFooter } from '../components/layout/SiteFooter';
 import { HomePage } from './HomePage';
@@ -13,6 +13,7 @@ import { AdminStudioPage } from '../features/admin/AdminStudioPage';
 import { AdminInventoryPage } from '../features/admin/AdminInventoryPage';
 import { AdminCategoriesPage, AdminProductsPage } from '../features/admin/AdminCatalogPages';
 import { AdminOrdersPage } from '../features/admin/AdminOrdersPage';
+import { AdminOverviewPage } from '../features/admin/AdminOverviewPage';
 import { PwaExperience } from '../components/layout/PwaExperience';
 
 export default function App() {
@@ -36,7 +37,7 @@ export default function App() {
         <Route path="/admin/appointments" element={<AdminStudioPage />} />
         <Route path="/admin/custom-orders" element={<AdminStudioPage />} />
         <Route path="/admin/inventory" element={<AdminInventoryPage />} />
-        <Route path="/admin" element={<Navigate to="/admin/products" replace />} />
+        <Route path="/admin" element={<AdminOverviewPage />} />
         <Route path="/admin/products" element={<AdminProductsPage />} />
         <Route path="/admin/categories" element={<AdminCategoriesPage />} />
         <Route path="/admin/orders" element={<AdminOrdersPage />} />
