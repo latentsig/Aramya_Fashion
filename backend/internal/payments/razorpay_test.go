@@ -70,6 +70,27 @@ func TestRazorpayClientFetchesPaymentAndRejectsProviderStatusMismatch(t *testing
 	}
 }
 
+func TestRazorpayClientFetchesPaymentsForOrder(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet || r.URL.Path != "/v1/orders/order_test_123456/payments" || r.URL.Query().Get("count") != "100" {
+			t.Fatalf("unexpected request %s %s?%s", r.Method, r.URL.Path, r.URL.RawQuery)
+		}
+		_, _ = io.WriteString(w, `{"entity":"collection","count":1,"items":[{"id":"pay_test_123456","order_id":"order_test_123456","amount":125050,"currency":"INR","status":"captured","captured":true,"email":"ignored@example.invalid"}]}`)
+	}))
+	defer server.Close()
+	client, err := NewRazorpayClientAt(testCredentials, server.Client(), server.URL+"/v1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	payments, err := client.FetchOrderPayments(context.Background(), "order_test_123456")
+	if err != nil || len(payments) != 1 || payments[0].Status != "captured" || !payments[0].Captured {
+		t.Fatalf("payments=%+v err=%v", payments, err)
+	}
+	if _, err := client.FetchOrderPayments(context.Background(), "order_test_123456/../other"); !errors.Is(err, ErrInvalidRequest) {
+		t.Fatalf("invalid order ID err=%v", err)
+	}
+}
+
 func TestRazorpayClientSanitizesProviderErrorsAndRejectsAmountMismatch(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)

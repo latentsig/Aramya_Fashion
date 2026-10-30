@@ -1,0 +1,2 @@
+DROP INDEX payment_attempts_reconciliation_idx;
+ALTER TABLE payment_attempts DROP COLUMN reconciliation_lease_until, DROP COLUMN last_reconciled_at;

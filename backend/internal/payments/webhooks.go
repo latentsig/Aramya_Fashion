@@ -117,7 +117,7 @@ func (s *CheckoutPaymentService) ProcessWebhook(ctx context.Context, eventID, si
 			if _, err := tx.Exec(dbCtx, `UPDATE payment_events SET payment_attempt_id=$2 WHERE provider_event_id=$1`, eventID, attemptID); err != nil {
 				return WebhookResult{}, err
 			}
-			if _, err := s.applyProviderPaymentTx(dbCtx, tx, attemptID, orderID, orderNumber, entity.ID, nextStatus, "razorpay-webhook:"+eventID); err != nil {
+			if _, err := s.applyProviderPaymentTx(dbCtx, tx, attemptID, orderID, orderNumber, entity.ID, nextStatus, "razorpay-webhook:"+eventID, true); err != nil {
 				return WebhookResult{}, err
 			}
 		}

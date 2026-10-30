@@ -54,3 +54,28 @@ func TestPaymentWebhookMetricUsesOnlyBoundedOutcomes(t *testing.T) {
 		t.Fatal("webhook metric exposed an event ID as a label")
 	}
 }
+
+func TestPaymentReconciliationMetricUsesOnlyBoundedOutcomes(t *testing.T) {
+	metrics := New()
+	metrics.RecordPaymentReconciliation("captured")
+	metrics.RecordPaymentReconciliation("payment_failed")
+	metrics.RecordPaymentReconciliation("pending")
+	metrics.RecordPaymentReconciliation("error")
+	metrics.RecordPaymentReconciliation("provider-order-secret")
+	response := httptest.NewRecorder()
+	metrics.Handler().ServeHTTP(response, httptest.NewRequest("GET", "/metrics", nil))
+	body := response.Body.String()
+	for _, expected := range []string{
+		`aramya_payment_reconciliation_attempts_total{outcome="captured"} 1`,
+		`aramya_payment_reconciliation_attempts_total{outcome="payment_failed"} 1`,
+		`aramya_payment_reconciliation_attempts_total{outcome="pending"} 1`,
+		`aramya_payment_reconciliation_attempts_total{outcome="error"} 1`,
+	} {
+		if !strings.Contains(body, expected) {
+			t.Fatalf("metric sample %q missing from scrape", expected)
+		}
+	}
+	if strings.Contains(body, "provider-order-secret") {
+		t.Fatal("reconciliation metric exposed an unbounded label")
+	}
+}

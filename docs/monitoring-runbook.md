@@ -19,6 +19,7 @@ If Docker is unavailable, scrape `http://localhost:18080/metrics` with an Author
 - `aramya_order_creation_attempts_total{outcome}` records order creations, idempotent replays, business rejections, and server failures.
 - `aramya_inventory_reservation_attempts_total{outcome}` records tracked-stock reservations as `reserved`, stock rejections as `rejected`, and reservation database/ledger failures as `failed`. Outcomes are fixed labels; IDs and SQL error text are never labels. A failure alert is provisioned in `infrastructure/monitoring/alerts.yml`.
 - `aramya_payment_webhook_events_total{outcome}` records accepted events, duplicates, invalid signatures/payloads, conflicting event IDs, missing headers, oversized bodies, and processing failures. All outcomes are fixed labels; event IDs, payment data, and error messages are excluded. Processing failures alert through `AramyaPaymentWebhookProcessingFailures`.
+- `aramya_payment_reconciliation_attempts_total{outcome}` records aged provider lookups as `captured`, `payment_failed`, `pending`, or `error`. It contains no payment/order IDs or provider response details. Provider/API/DB errors alert through `AramyaPaymentReconciliationErrors`.
 - Go runtime metrics are also available from the process collector.
 
 R2 and database slow-query metrics are not emitted yet because those corresponding instrumented operations are not implemented. Add counters/timers alongside those real operations when those milestones are built; do not infer success from request counts.
@@ -27,6 +28,7 @@ R2 and database slow-query metrics are not emitted yet because those correspondi
 
 - **High server-error rate:** check structured API logs using the request ID and route; distinguish client validation from 5xx errors before rollback.
 - **Database not ready:** verify PostgreSQL health, connection limits, credentials/configuration, and migrations. Do not repeatedly restart a database that is still recovering.
+- **Payment reconciliation error:** confirm the API can reach Razorpay and PostgreSQL, verify the configured key is test-mode, and inspect the aged attempt through approved operational tools. Never change an order to paid manually; rely on provider-validated state or follow the documented support escalation.
 - **High p95 latency:** inspect the route-level dashboard, database load, lock waits, and pool saturation. Correlate with request IDs; metrics contain no PII.
 
 Prometheus alert rules are in `infrastructure/monitoring/alerts.yml`. The local stack does not configure an outbound alert receiver. Production alert delivery, private metrics ingress, GCP service monitoring, and operator paging still require deployment/account configuration.
