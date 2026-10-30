@@ -155,3 +155,9 @@ This report tracks verified milestones and does not claim full e-commerce accept
 - Added admin role and existing CSRF protections, rate limits, sanitized API errors, approved-image picker integration, documented OpenAPI paths, and a product editor that uploads directly to staging and selects the approved result. Storefront/admin media URL resolution preserves the object key path and supports the configured approved-media domain.
 - `npm test -- --run`: 15 files and 29 tests passed. `npm run build` passed with existing upstream Zod annotation and bundle-size warnings. Tests cover browser hashing/request sequence, signed PUT headers, approval completion, and visible failure when R2 is not configured.
 - Credentials are not configured, so no live R2 request or upload was made. Browser CORS, bucket permissions, public delivery, database persistence against PostgreSQL, and real-account upload remain unverified. The API returns 503 when R2 is unset. No original image was migrated or removed.
+
+## Razorpay test-mode foundation — verified locally, checkout not enabled
+
+- Added optional server configuration that rejects partial credentials and live-mode key IDs, a timeout-bounded Razorpay REST client for order creation/payment retrieval, provider response checks, and constant-time checkout/webhook HMAC verification using their distinct secrets.
+- Isolated HTTP contract tests use a local test server; no provider account or payment result is simulated as a live success. `go test -count=1 ./...` and `go vet ./...` pass.
+- The public checkout still returns `paymentAvailable: false`. Payment attempt persistence, API order initiation from checkout, browser checkout UI, capture-state confirmation, webhook ingestion/deduplication, refunds and reconciliation remain unimplemented. No credentials are configured. See [payment workflow](payment-workflow.md).

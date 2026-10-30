@@ -12,6 +12,9 @@ func setBaseConfig(t *testing.T) {
 	for _, name := range []string{"CLOUDFLARE_R2_ACCOUNT_ID", "CLOUDFLARE_R2_ACCESS_KEY_ID", "CLOUDFLARE_R2_SECRET_ACCESS_KEY", "CLOUDFLARE_R2_UPLOAD_BUCKET", "CLOUDFLARE_R2_APPROVED_BUCKET", "CLOUDFLARE_R2_PUBLIC_BASE_URL"} {
 		t.Setenv(name, "")
 	}
+	for _, name := range []string{"RAZORPAY_KEY_ID", "RAZORPAY_KEY_SECRET", "RAZORPAY_WEBHOOK_SECRET"} {
+		t.Setenv(name, "")
+	}
 }
 
 func TestLoadRequiresDatabaseURL(t *testing.T) {
@@ -104,5 +107,29 @@ func TestLoadR2IsOptionalButMustBeCompleteAndValid(t *testing.T) {
 	t.Setenv("CLOUDFLARE_R2_PUBLIC_BASE_URL", "http://media.example.test")
 	if _, err := Load(); err == nil {
 		t.Fatal("non-HTTPS media domain must fail")
+	}
+}
+
+func TestLoadRazorpayAllowsOnlyCompleteTestModeCredentials(t *testing.T) {
+	setBaseConfig(t)
+	cfg, err := Load()
+	if err != nil || cfg.Razorpay != nil {
+		t.Fatalf("unset Razorpay must leave payments disabled: config=%+v err=%v", cfg.Razorpay, err)
+	}
+	t.Setenv("RAZORPAY_KEY_ID", "rzp_test_syntheticKey")
+	if _, err := Load(); err == nil {
+		t.Fatal("partial Razorpay credentials must fail")
+	}
+	setBaseConfig(t)
+	t.Setenv("RAZORPAY_KEY_ID", "rzp_test_syntheticKey")
+	t.Setenv("RAZORPAY_KEY_SECRET", "synthetic-test-api-secret")
+	t.Setenv("RAZORPAY_WEBHOOK_SECRET", "synthetic-test-hook-secret")
+	cfg, err = Load()
+	if err != nil || cfg.Razorpay == nil || cfg.Razorpay.KeyID != "rzp_test_syntheticKey" {
+		t.Fatalf("complete Razorpay test configuration rejected: config=%+v err=%v", cfg.Razorpay, err)
+	}
+	t.Setenv("RAZORPAY_KEY_ID", "rzp_live_syntheticKey")
+	if _, err := Load(); err == nil {
+		t.Fatal("live-mode key ID must be rejected")
 	}
 }
