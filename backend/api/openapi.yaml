@@ -130,10 +130,53 @@ paths:
         '404': { description: Category not found }
         '409': { description: Stale version, duplicate slug, or category still has active products }
         '422': { description: Image is not in the approved asset library }
+  /api/v1/admin/media/upload-intent:
+    post:
+      summary: Create a short-lived private R2 image upload intent
+      description: The browser uploads directly to private staging with the returned Content-Type. Completion verifies exact size, MIME signature, and SHA-256 before copying the object to the approved-media bucket.
+      security: [{ sessionCookie: [], csrfToken: [], csrfCookie: [] }]
+      parameters:
+        - { in: header, name: X-CSRF-Token, required: true, schema: { type: string } }
+        - { in: cookie, name: aramya_csrf, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/MediaUploadIntentRequest' }
+      responses:
+        '201': { description: Pending media metadata and a five-minute signed upload URL }
+        '400': { description: Invalid filename, MIME type, size, checksum, or category }
+        '401': { description: Administrator session is required }
+        '403': { description: Admin role or CSRF validation failed }
+        '429': { description: Upload intent rate limit exceeded }
+        '503': { description: R2 media storage is not configured }
+  /api/v1/admin/media/complete:
+    post:
+      summary: Verify and approve a staged media object
+      description: Recomputes SHA-256 and checks image signature and size, copies verified content to the approved bucket, persists approval/audit data, and deletes the private staging object.
+      security: [{ sessionCookie: [], csrfToken: [], csrfCookie: [] }]
+      parameters:
+        - { in: header, name: X-CSRF-Token, required: true, schema: { type: string } }
+        - { in: cookie, name: aramya_csrf, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [intentId], properties: { intentId: { type: string, format: uuid } } }
+      responses:
+        '200': { description: Approved media object and public URL }
+        '400': { description: Invalid intent ID }
+        '401': { description: Administrator session is required }
+        '403': { description: Admin role or CSRF validation failed }
+        '404': { description: Media intent not found }
+        '409': { description: Staging upload is not present }
+        '422': { description: Uploaded bytes do not match the recorded type, size, or checksum }
+        '429': { description: Completion rate limit exceeded }
+        '503': { description: R2 media storage is not configured }
   /api/v1/admin/catalog/image-options:
     get:
       summary: List existing approved catalog images
-      description: Returns image references already present in the catalog metadata. This endpoint does not upload files to R2.
+      description: Returns existing catalog image references and verified approved-media object keys.
       security: [{ sessionCookie: [] }]
       responses:
         '200':
@@ -784,6 +827,38 @@ components:
       in: cookie
       name: aramya_csrf
   schemas:
+    MediaUploadIntentRequest:
+      type: object
+      required: [originalFilename, mimeType, byteSize, sha256, altText, category]
+      properties:
+        originalFilename: { type: string, maxLength: 240 }
+        mimeType: { type: string, enum: [image/jpeg, image/png, image/webp, image/avif] }
+        byteSize: { type: integer, minimum: 1, maximum: 10485760 }
+        sha256: { type: string, pattern: '^[a-fA-F0-9]{64}$' }
+        altText: { type: string, maxLength: 240 }
+        category: { type: string, enum: [sarees, bridal, occasion, menswear, kids, brand, collections] }
+    MediaUploadIntent:
+      type: object
+      required: [media, uploadUrl, expiresAt, requiredHeaders]
+      properties:
+        media: { $ref: '#/components/schemas/MediaObject' }
+        uploadUrl: { type: string, format: uri }
+        expiresAt: { type: string, format: date-time }
+        requiredHeaders: { type: object, additionalProperties: { type: string } }
+    MediaObject:
+      type: object
+      required: [id, objectKey, originalFilename, mimeType, byteSize, sha256, altText, status, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        objectKey: { type: string }
+        originalFilename: { type: string }
+        mimeType: { type: string }
+        byteSize: { type: integer }
+        sha256: { type: string, pattern: '^[a-fA-F0-9]{64}$' }
+        altText: { type: string }
+        status: { type: string, enum: [pending, approved] }
+        publicUrl: { type: string, format: uri }
+        createdAt: { type: string, format: date-time }
     AdminOrder:
       type: object
       required: [id, version, orderNumber, status, currency, subtotalPaise, taxPaise, shippingPaise, discountPaise, totalPaise, customerName, customerEmail, customerPhone, paymentStatus, refundStatus, refundedPaise, shipmentStatus, shipmentProvider, trackingNumber, trackingUrl, createdAt, updatedAt]

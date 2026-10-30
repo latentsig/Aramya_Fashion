@@ -5,6 +5,15 @@ import (
 	"testing"
 )
 
+func setBaseConfig(t *testing.T) {
+	t.Helper()
+	t.Setenv("DATABASE_URL", "postgres://localhost/aramya")
+	t.Setenv("CSRF_SECRET", base64.RawURLEncoding.EncodeToString(make([]byte, 32)))
+	for _, name := range []string{"CLOUDFLARE_R2_ACCOUNT_ID", "CLOUDFLARE_R2_ACCESS_KEY_ID", "CLOUDFLARE_R2_SECRET_ACCESS_KEY", "CLOUDFLARE_R2_UPLOAD_BUCKET", "CLOUDFLARE_R2_APPROVED_BUCKET", "CLOUDFLARE_R2_PUBLIC_BASE_URL"} {
+		t.Setenv(name, "")
+	}
+}
+
 func TestLoadRequiresDatabaseURL(t *testing.T) {
 	t.Setenv("DATABASE_URL", "")
 	if _, err := Load(); err == nil {
@@ -63,5 +72,37 @@ func TestLoadRejectsShortPrometheusBearerToken(t *testing.T) {
 	t.Setenv("PROMETHEUS_BEARER_TOKEN", "too-short")
 	if _, err := Load(); err == nil {
 		t.Fatal("expected short Prometheus bearer token to fail")
+	}
+}
+
+func TestLoadR2IsOptionalButMustBeCompleteAndValid(t *testing.T) {
+	setBaseConfig(t)
+	cfg, err := Load()
+	if err != nil || cfg.R2 != nil {
+		t.Fatalf("unset R2 should be disabled: cfg=%+v err=%v", cfg.R2, err)
+	}
+	t.Setenv("CLOUDFLARE_R2_ACCOUNT_ID", "0123456789abcdef0123456789abcdef")
+	if _, err := Load(); err == nil {
+		t.Fatal("partial R2 config must fail")
+	}
+	setBaseConfig(t)
+	t.Setenv("CLOUDFLARE_R2_ACCOUNT_ID", "0123456789abcdef0123456789abcdef")
+	t.Setenv("CLOUDFLARE_R2_ACCESS_KEY_ID", "SYNTHETIC_ACCESS_KEY")
+	t.Setenv("CLOUDFLARE_R2_SECRET_ACCESS_KEY", "synthetic-test-secret-key-value-1234567890")
+	t.Setenv("CLOUDFLARE_R2_UPLOAD_BUCKET", "aramya-staging")
+	t.Setenv("CLOUDFLARE_R2_APPROVED_BUCKET", "aramya-approved")
+	t.Setenv("CLOUDFLARE_R2_PUBLIC_BASE_URL", "https://media.example.test")
+	cfg, err = Load()
+	if err != nil || cfg.R2 == nil || cfg.R2.UploadBucket != "aramya-staging" {
+		t.Fatalf("valid R2 config rejected: cfg=%+v err=%v", cfg.R2, err)
+	}
+	t.Setenv("CLOUDFLARE_R2_APPROVED_BUCKET", "aramya-staging")
+	if _, err := Load(); err == nil {
+		t.Fatal("same upload and approved buckets must fail")
+	}
+	t.Setenv("CLOUDFLARE_R2_APPROVED_BUCKET", "aramya-approved")
+	t.Setenv("CLOUDFLARE_R2_PUBLIC_BASE_URL", "http://media.example.test")
+	if _, err := Load(); err == nil {
+		t.Fatal("non-HTTPS media domain must fail")
 	}
 }

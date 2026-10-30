@@ -20,8 +20,10 @@ import (
 	"github.com/latentsig/aramya-fashion/backend/internal/catalog"
 	"github.com/latentsig/aramya-fashion/backend/internal/checkout"
 	"github.com/latentsig/aramya-fashion/backend/internal/config"
+	"github.com/latentsig/aramya-fashion/backend/internal/media"
 	"github.com/latentsig/aramya-fashion/backend/internal/observability"
 	"github.com/latentsig/aramya-fashion/backend/internal/orders"
+	"github.com/latentsig/aramya-fashion/backend/internal/storage"
 )
 
 func main() {
@@ -69,6 +71,22 @@ func main() {
 		logger.Error("admin_orders_initialization_failed", "error_type", fmt.Sprintf("%T", err))
 		os.Exit(1)
 	}
+	var mediaService *media.Service
+	if cfg.R2 != nil {
+		r2Store, storeErr := storage.NewR2Store(storage.R2Config{
+			AccountID: cfg.R2.AccountID, AccessKeyID: cfg.R2.AccessKeyID, SecretAccessKey: cfg.R2.SecretAccessKey,
+			UploadBucket: cfg.R2.UploadBucket, ApprovedBucket: cfg.R2.ApprovedBucket, PublicBaseURL: cfg.R2.PublicBaseURL,
+		})
+		if storeErr != nil {
+			logger.Error("r2_initialization_failed", "error_type", fmt.Sprintf("%T", storeErr))
+			os.Exit(1)
+		}
+		mediaService, err = media.NewService(admin.NewMediaRepository(pool, cfg.QueryTimeout), r2Store)
+		if err != nil {
+			logger.Error("media_service_initialization_failed", "error_type", fmt.Sprintf("%T", err))
+			os.Exit(1)
+		}
+	}
 
 	router := api.NewRouter(api.RouterConfig{
 		Metrics:            observability.New(),
@@ -79,6 +97,7 @@ func main() {
 		Checkout:           checkoutService,
 		Orders:             orderRepository,
 		AdminOrders:        adminOrderRepository,
+		AdminMedia:         mediaService,
 		StudioRequests:     appointments.NewRepository(pool, cfg.QueryTimeout),
 		AdminStudio:        admin.NewStudioRepository(pool, cfg.QueryTimeout),
 		AdminInventory:     admin.NewInventoryRepository(pool, cfg.QueryTimeout),

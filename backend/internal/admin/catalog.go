@@ -287,7 +287,7 @@ func (r *CatalogRepository) GetProduct(ctx context.Context, id string) (AdminPro
 func (r *CatalogRepository) ListImageOptions(ctx context.Context) ([]ImageOption, error) {
 	dbCtx, cancel := context.WithTimeout(ctx, r.queryTimeout)
 	defer cancel()
-	rows, err := r.pool.Query(dbCtx, `SELECT image_key FROM (SELECT image_key FROM products UNION SELECT image_key FROM categories UNION SELECT object_key AS image_key FROM product_images) assets ORDER BY image_key`)
+	rows, err := r.pool.Query(dbCtx, `SELECT image_key FROM (SELECT image_key FROM products UNION SELECT image_key FROM categories UNION SELECT object_key AS image_key FROM product_images UNION SELECT object_key AS image_key FROM media_objects WHERE status='approved') assets ORDER BY image_key`)
 	if err != nil {
 		return nil, err
 	}
@@ -515,7 +515,7 @@ func checkProductCategory(ctx context.Context, tx pgx.Tx, id, status string) err
 }
 func ensureExistingImage(ctx context.Context, tx pgx.Tx, key string) error {
 	var exists bool
-	err := tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM products WHERE image_key=$1 UNION ALL SELECT 1 FROM categories WHERE image_key=$1 UNION ALL SELECT 1 FROM product_images WHERE object_key=$1)`, key).Scan(&exists)
+	err := tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM products WHERE image_key=$1 UNION ALL SELECT 1 FROM categories WHERE image_key=$1 UNION ALL SELECT 1 FROM product_images WHERE object_key=$1 UNION ALL SELECT 1 FROM media_objects WHERE object_key=$1 AND status='approved')`, key).Scan(&exists)
 	if err != nil {
 		return err
 	}
