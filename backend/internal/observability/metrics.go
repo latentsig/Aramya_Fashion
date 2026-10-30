@@ -19,6 +19,7 @@ type Metrics struct {
 	databaseReady         prometheus.Gauge
 	orderAttempts         *prometheus.CounterVec
 	inventoryReservations *prometheus.CounterVec
+	paymentWebhooks       *prometheus.CounterVec
 }
 
 func New() *Metrics {
@@ -51,8 +52,13 @@ func New() *Metrics {
 			Name:      "inventory_reservation_attempts_total",
 			Help:      "Tracked inventory reservation attempts by bounded outcome.",
 		}, []string{"outcome"}),
+		paymentWebhooks: prometheus.NewCounterVec(prometheus.CounterOpts{
+			Namespace: "aramya",
+			Name:      "payment_webhook_events_total",
+			Help:      "Razorpay webhook deliveries by bounded processing outcome.",
+		}, []string{"outcome"}),
 	}
-	registry.MustRegister(m.requests, m.requestTime, m.databaseReady, m.orderAttempts, m.inventoryReservations, prometheus.NewGoCollector())
+	registry.MustRegister(m.requests, m.requestTime, m.databaseReady, m.orderAttempts, m.inventoryReservations, m.paymentWebhooks, prometheus.NewGoCollector())
 	return m
 }
 
@@ -99,5 +105,14 @@ func (m *Metrics) RecordInventoryReservation(outcome string) {
 	switch outcome {
 	case "reserved", "rejected", "failed":
 		m.inventoryReservations.WithLabelValues(outcome).Inc()
+	}
+}
+
+// RecordPaymentWebhook accepts only fixed outcome labels, never event IDs,
+// payload fields, customer details, or error strings.
+func (m *Metrics) RecordPaymentWebhook(outcome string) {
+	switch outcome {
+	case "processed", "duplicate", "invalid_signature", "invalid_payload", "conflict", "failed", "rejected_headers", "too_large":
+		m.paymentWebhooks.WithLabelValues(outcome).Inc()
 	}
 }

@@ -38,3 +38,12 @@ groups:
         annotations:
           summary: Tracked inventory reservations are failing
           description: Check checkout transaction failures and inventory rows; do not adjust stock counters manually without reconciling reservations and ledger entries.
+
+      - alert: AramyaPaymentWebhookProcessingFailures
+        expr: sum(increase(aramya_payment_webhook_events_total{outcome="failed"}[5m])) > 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: Razorpay webhook processing failed
+          description: Check sanitized API errors, PostgreSQL readiness, and webhook transaction health; Razorpay may retry failed deliveries.
