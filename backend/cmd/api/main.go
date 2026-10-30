@@ -20,6 +20,7 @@ import (
 	"github.com/latentsig/aramya-fashion/backend/internal/catalog"
 	"github.com/latentsig/aramya-fashion/backend/internal/checkout"
 	"github.com/latentsig/aramya-fashion/backend/internal/config"
+	"github.com/latentsig/aramya-fashion/backend/internal/observability"
 	"github.com/latentsig/aramya-fashion/backend/internal/orders"
 )
 
@@ -70,17 +71,19 @@ func main() {
 	}
 
 	router := api.NewRouter(api.RouterConfig{
-		Catalog:        catalog.NewRepository(pool, cfg.QueryTimeout),
-		Auth:           authService,
-		Cart:           cartService,
-		Checkout:       checkoutService,
-		Orders:         orderRepository,
-		AdminOrders:    adminOrderRepository,
-		StudioRequests: appointments.NewRepository(pool, cfg.QueryTimeout),
-		AdminStudio:    admin.NewStudioRepository(pool, cfg.QueryTimeout),
-		AdminInventory: admin.NewInventoryRepository(pool, cfg.QueryTimeout),
-		AdminCatalog:   admin.NewCatalogRepository(pool, cfg.QueryTimeout),
-		AdminIdentity:  authService,
+		Metrics:            observability.New(),
+		MetricsBearerToken: cfg.MetricsBearerToken,
+		Catalog:            catalog.NewRepository(pool, cfg.QueryTimeout),
+		Auth:               authService,
+		Cart:               cartService,
+		Checkout:           checkoutService,
+		Orders:             orderRepository,
+		AdminOrders:        adminOrderRepository,
+		StudioRequests:     appointments.NewRepository(pool, cfg.QueryTimeout),
+		AdminStudio:        admin.NewStudioRepository(pool, cfg.QueryTimeout),
+		AdminInventory:     admin.NewInventoryRepository(pool, cfg.QueryTimeout),
+		AdminCatalog:       admin.NewCatalogRepository(pool, cfg.QueryTimeout),
+		AdminIdentity:      authService,
 		Ready: func() error {
 			ctx, cancel := context.WithTimeout(context.Background(), cfg.QueryTimeout)
 			defer cancel()

@@ -1,6 +1,6 @@
 # Acceptance report — implementation in progress
 
-This report tracks verified milestones. It does not claim full e-commerce acceptance; payment processing, password reset/email verification, Google sign-in, order/shipping administration, new R2 uploads, PWA, Android, monitoring, and cloud deployment are not implemented.
+This report tracks verified milestones and does not claim full e-commerce acceptance. The responsive React storefront/PWA, Go/PostgreSQL API, catalog, customer sessions, cart, pending-order checkout, order history, studio requests, admin catalog/inventory/order/studio workflows, and an Expo React Native browsing/cart foundation are implemented to varying verified scopes. Razorpay processing, Cloudflare R2 migration/uploads, selected authentication extensions, mobile checkout, Android device/APK validation, and cloud deployment remain incomplete.
 
 ## Verified repository/catalog/API milestone
 
@@ -132,3 +132,12 @@ This report tracks verified milestones. It does not claim full e-commerce accept
 - Added the responsive `/admin/orders` page with status/search filters, order detail, payment/refund read-only status, tracking, history and fulfillment actions. The UI uses the admin session, CSRF-protected updates, and real API responses.
 - Unit, route, UI and guarded PostgreSQL integration checks have been added. Final full-suite and OpenAPI verification will be recorded after execution.
 - Remaining: Razorpay verification/webhooks and refund initiation, order analytics summary, R2, PWA, Android, monitoring, deployment, and full end-to-end acceptance.
+
+## Prometheus/Grafana API observability — verified locally
+
+- Added a private Prometheus registry and API middleware recording request counts and latency by Gin route template, method, and HTTP status. Raw URL paths, query parameters, user data, addresses, payment payloads, and secrets are excluded from metric labels.
+- Added an optional bearer-protected `/metrics` endpoint, a readiness gauge updated by database pings, an order-creation outcome counter, and Go runtime metrics. The endpoint stays disabled unless `PROMETHEUS_BEARER_TOKEN` is configured with at least 32 characters.
+- Added pinned local Prometheus/Grafana Compose services, scrape config, provisioned datasource/dashboard, alert rules, ignored local token/password paths, and [monitoring runbook](monitoring-runbook.md).
+- `go test -count=1 ./...` passed, including authorization, bounded label, database readiness, and token validation checks. `go vet ./...` passed. Prometheus/Grafana YAML and dashboard JSON parsed; `docker compose ... config --quiet` passed; `git diff --check` passed.
+- The local Prometheus/Grafana containers were not started because the API scrape token and Grafana admin password are intentionally operator-provided local configuration. No external credentials were generated or written. Live scrape, dashboard rendering, and alert firing remain unverified.
+- Payment, webhook, R2, stock reservation, and slow-query metrics are not emitted because their corresponding instrumented operations are not implemented. Cloud alert delivery and GCP monitoring remain pending deployment access/configuration.

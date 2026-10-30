@@ -20,6 +20,7 @@ type Config struct {
 	SessionCookieSecure   bool
 	SessionCookieSameSite string
 	CSRFSecret            []byte
+	MetricsBearerToken    string
 }
 
 func Load() (Config, error) {
@@ -31,6 +32,7 @@ func Load() (Config, error) {
 		QueryTimeout:          3 * time.Second,
 		SessionTTL:            7 * 24 * time.Hour,
 		SessionCookieSameSite: "lax",
+		MetricsBearerToken:    strings.TrimSpace(os.Getenv("PROMETHEUS_BEARER_TOKEN")),
 	}
 	if cfg.Address == "" {
 		cfg.Address = ":8080"
@@ -43,6 +45,9 @@ func Load() (Config, error) {
 		return Config{}, errors.New("CSRF_SECRET must be base64url encoding of at least 32 random bytes")
 	}
 	cfg.CSRFSecret = csrfSecret
+	if cfg.MetricsBearerToken != "" && len(cfg.MetricsBearerToken) < 32 {
+		return Config{}, errors.New("PROMETHEUS_BEARER_TOKEN must contain at least 32 characters when configured")
+	}
 	if value := strings.TrimSpace(os.Getenv("DATABASE_CONNECT_TIMEOUT")); value != "" {
 		duration, err := time.ParseDuration(value)
 		if err != nil || duration <= 0 {

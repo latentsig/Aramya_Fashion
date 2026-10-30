@@ -16,6 +16,7 @@ Aramya keeps its branded React website/PWA and a separate React Native mobile ap
 - API/database: follow [`docs/local-setup.md`](docs/local-setup.md)
 - Android/mobile: follow [`docs/mobile-development.md`](docs/mobile-development.md)
 - PWA behavior: [`docs/pwa.md`](docs/pwa.md)
+- API monitoring: [`docs/monitoring-runbook.md`](docs/monitoring-runbook.md)
 - Hero media licensing: [`docs/media-sources.md`](docs/media-sources.md)
 
 The native app is not a WebView. The web app remains the public website and PWA; React Native provides a true native mobile UI.

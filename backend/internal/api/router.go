@@ -1,6 +1,8 @@
 package api
 
 import (
+	"crypto/sha256"
+	"crypto/subtle"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -14,6 +16,7 @@ import (
 	"github.com/latentsig/aramya-fashion/backend/internal/cart"
 	"github.com/latentsig/aramya-fashion/backend/internal/catalog"
 	"github.com/latentsig/aramya-fashion/backend/internal/checkout"
+	"github.com/latentsig/aramya-fashion/backend/internal/observability"
 )
 
 type RouterConfig struct {
@@ -33,6 +36,8 @@ type RouterConfig struct {
 	SessionCookieSecure   bool
 	SessionCookieSameSite string
 	CSRFSecret            []byte
+	Metrics               *observability.Metrics
+	MetricsBearerToken    string
 	Logger                *slog.Logger
 }
 
@@ -40,14 +45,35 @@ func NewRouter(cfg RouterConfig) *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
 	router.Use(requestID(), accessLog(cfg.Logger), gin.Recovery(), cors(cfg.AllowedOrigins), newRateLimiter(120, time.Minute).Middleware())
+	if cfg.Metrics != nil {
+		router.Use(cfg.Metrics.Middleware())
+	}
 	router.GET("/health", func(c *gin.Context) { c.JSON(http.StatusOK, gin.H{"status": "ok"}) })
 	router.GET("/ready", func(c *gin.Context) {
-		if cfg.Ready == nil || cfg.Ready() != nil {
+		ready := cfg.Ready != nil && cfg.Ready() == nil
+		if cfg.Metrics != nil {
+			cfg.Metrics.SetDatabaseReady(ready)
+		}
+		if !ready {
 			c.JSON(http.StatusServiceUnavailable, gin.H{"status": "unavailable"})
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{"status": "ready"})
 	})
+	if cfg.Metrics != nil && cfg.MetricsBearerToken != "" {
+		router.GET("/metrics", func(c *gin.Context) {
+			authorization := c.GetHeader("Authorization")
+			const prefix = "Bearer "
+			provided := sha256.Sum256([]byte(strings.TrimPrefix(authorization, prefix)))
+			expected := sha256.Sum256([]byte(cfg.MetricsBearerToken))
+			if !strings.HasPrefix(authorization, prefix) || subtle.ConstantTimeCompare(provided[:], expected[:]) != 1 {
+				c.Header("WWW-Authenticate", `Bearer realm="metrics"`)
+				c.Status(http.StatusUnauthorized)
+				return
+			}
+			cfg.Metrics.Handler().ServeHTTP(c.Writer, c.Request)
+		})
+	}
 
 	v1 := router.Group("/api/v1")
 	if cfg.Auth != nil {
@@ -58,7 +84,7 @@ func NewRouter(cfg RouterConfig) *gin.Engine {
 		registerCartRoutes(v1, cfg.Cart, cfg.Auth, cfg.SessionCookieSecure, cookieSameSite(cfg.SessionCookieSameSite), cfg.Logger)
 	}
 	if cfg.Checkout != nil && cfg.Cart != nil {
-		registerCheckoutRoutes(v1, cfg.Checkout, cfg.Cart, cfg.Auth, cfg.SessionCookieSecure, cookieSameSite(cfg.SessionCookieSameSite), cfg.Logger)
+		registerCheckoutRoutes(v1, cfg.Checkout, cfg.Cart, cfg.Auth, cfg.SessionCookieSecure, cookieSameSite(cfg.SessionCookieSameSite), cfg.Logger, cfg.Metrics)
 	}
 	if cfg.Orders != nil {
 		registerOrderRoutes(v1, cfg.Orders, cfg.Auth, cfg.Logger)

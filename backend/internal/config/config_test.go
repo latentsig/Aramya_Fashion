@@ -56,3 +56,12 @@ func TestLoadRejectsInvalidSessionSettings(t *testing.T) {
 		t.Fatal("expected cross-site cookies to require Secure")
 	}
 }
+
+func TestLoadRejectsShortPrometheusBearerToken(t *testing.T) {
+	t.Setenv("DATABASE_URL", "postgres://localhost/aramya")
+	t.Setenv("CSRF_SECRET", base64.RawURLEncoding.EncodeToString(make([]byte, 32)))
+	t.Setenv("PROMETHEUS_BEARER_TOKEN", "too-short")
+	if _, err := Load(); err == nil {
+		t.Fatal("expected short Prometheus bearer token to fail")
+	}
+}

@@ -1,0 +1,25 @@
+{
+  "annotations": {"list": []},
+  "editable": false,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {"datasource":{"type":"prometheus","uid":"aramya-prometheus"},"fieldConfig":{"defaults":{"unit":"reqps"},"overrides":[]},"gridPos":{"h":8,"w":12,"x":0,"y":0},"id":1,"options":{"legend":{"displayMode":"list","placement":"bottom"},"tooltip":{"mode":"single"}},"targets":[{"expr":"sum by (route) (rate(aramya_http_requests_total[5m]))","legendFormat":"{{route}}","refId":"A"}],"title":"API request rate by route","type":"timeseries"},
+    {"datasource":{"type":"prometheus","uid":"aramya-prometheus"},"fieldConfig":{"defaults":{"unit":"percentunit","min":0,"max":1},"overrides":[]},"gridPos":{"h":8,"w":12,"x":12,"y":0},"id":2,"options":{"legend":{"displayMode":"list","placement":"bottom"},"tooltip":{"mode":"single"}},"targets":[{"expr":"sum(rate(aramya_http_requests_total{status=~\"5..\"}[5m])) / clamp_min(sum(rate(aramya_http_requests_total[5m])), 0.01)","legendFormat":"5xx fraction","refId":"A"}],"title":"API server error fraction","type":"timeseries"},
+    {"datasource":{"type":"prometheus","uid":"aramya-prometheus"},"fieldConfig":{"defaults":{"unit":"s"},"overrides":[]},"gridPos":{"h":8,"w":12,"x":0,"y":8},"id":3,"options":{"legend":{"displayMode":"list","placement":"bottom"},"tooltip":{"mode":"single"}},"targets":[{"expr":"histogram_quantile(0.95, sum by (le, route) (rate(aramya_http_request_duration_seconds_bucket[5m])))","legendFormat":"p95 {{route}}","refId":"A"}],"title":"API request latency p95","type":"timeseries"},
+    {"datasource":{"type":"prometheus","uid":"aramya-prometheus"},"fieldConfig":{"defaults":{"min":0,"max":1,"thresholds":{"mode":"absolute","steps":[{"color":"red","value":0},{"color":"green","value":1}]}},"overrides":[]},"gridPos":{"h":8,"w":6,"x":12,"y":8},"id":4,"options":{"orientation":"auto","reduceOptions":{"calcs":["lastNotNull"],"fields":"","values":false},"showThresholdLabels":false,"showThresholdMarkers":true},"targets":[{"expr":"aramya_database_ready","refId":"A"}],"title":"PostgreSQL readiness","type":"gauge"},
+    {"datasource":{"type":"prometheus","uid":"aramya-prometheus"},"fieldConfig":{"defaults":{"unit":"short"},"overrides":[]},"gridPos":{"h":8,"w":6,"x":18,"y":8},"id":5,"options":{"legend":{"displayMode":"list","placement":"bottom"},"tooltip":{"mode":"single"}},"targets":[{"expr":"sum by (outcome) (increase(aramya_order_creation_attempts_total[1h]))","legendFormat":"{{outcome}}","refId":"A"}],"title":"Order creation outcomes (last hour)","type":"timeseries"}
+  ],
+  "refresh": "30s",
+  "schemaVersion": 41,
+  "tags": ["aramya", "api"],
+  "templating": {"list": []},
+  "time": {"from": "now-6h", "to": "now"},
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Aramya API",
+  "uid": "aramya-api",
+  "version": 1
+}
