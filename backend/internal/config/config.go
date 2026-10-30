@@ -4,11 +4,25 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
 )
+
+var r2AccountIDPattern = regexp.MustCompile(`^[a-fA-F0-9]{32}$`)
+var r2BucketPattern = regexp.MustCompile(`^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$`)
+
+type R2Config struct {
+	AccountID       string
+	AccessKeyID     string
+	SecretAccessKey string
+	UploadBucket    string
+	ApprovedBucket  string
+	PublicBaseURL   string
+}
 
 type Config struct {
 	Address               string
@@ -21,6 +35,7 @@ type Config struct {
 	SessionCookieSameSite string
 	CSRFSecret            []byte
 	MetricsBearerToken    string
+	R2                    *R2Config
 }
 
 func Load() (Config, error) {
@@ -45,6 +60,32 @@ func Load() (Config, error) {
 		return Config{}, errors.New("CSRF_SECRET must be base64url encoding of at least 32 random bytes")
 	}
 	cfg.CSRFSecret = csrfSecret
+	r2Values := []string{
+		strings.TrimSpace(os.Getenv("CLOUDFLARE_R2_ACCOUNT_ID")),
+		strings.TrimSpace(os.Getenv("CLOUDFLARE_R2_ACCESS_KEY_ID")),
+		strings.TrimSpace(os.Getenv("CLOUDFLARE_R2_SECRET_ACCESS_KEY")),
+		strings.TrimSpace(os.Getenv("CLOUDFLARE_R2_UPLOAD_BUCKET")),
+		strings.TrimSpace(os.Getenv("CLOUDFLARE_R2_APPROVED_BUCKET")),
+		strings.TrimSpace(os.Getenv("CLOUDFLARE_R2_PUBLIC_BASE_URL")),
+	}
+	configuredR2Values := 0
+	for _, value := range r2Values {
+		if value != "" {
+			configuredR2Values++
+		}
+	}
+	if configuredR2Values != 0 {
+		if configuredR2Values != len(r2Values) {
+			return Config{}, errors.New("all CLOUDFLARE_R2_* settings must be configured together")
+		}
+		publicURL, parseErr := url.Parse(r2Values[5])
+		if !r2AccountIDPattern.MatchString(r2Values[0]) || len(r2Values[1]) < 8 || len(r2Values[2]) < 32 ||
+			!r2BucketPattern.MatchString(r2Values[3]) || !r2BucketPattern.MatchString(r2Values[4]) || r2Values[3] == r2Values[4] ||
+			parseErr != nil || publicURL.Scheme != "https" || publicURL.Host == "" || publicURL.User != nil || publicURL.RawQuery != "" || publicURL.Fragment != "" {
+			return Config{}, errors.New("CLOUDFLARE_R2_* settings are invalid; use a 32-character account ID, restricted credentials, distinct bucket names, and an HTTPS public base URL")
+		}
+		cfg.R2 = &R2Config{AccountID: r2Values[0], AccessKeyID: r2Values[1], SecretAccessKey: r2Values[2], UploadBucket: r2Values[3], ApprovedBucket: r2Values[4], PublicBaseURL: strings.TrimRight(r2Values[5], "/")}
+	}
 	if cfg.MetricsBearerToken != "" && len(cfg.MetricsBearerToken) < 32 {
 		return Config{}, errors.New("PROMETHEUS_BEARER_TOKEN must contain at least 32 characters when configured")
 	}

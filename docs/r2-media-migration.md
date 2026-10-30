@@ -1,5 +1,15 @@
 # R2 media migration inventory
 
+## Admin upload workflow
+
+The Go API supports a direct browser-to-R2 upload workflow when all six optional R2 settings in `backend/.env.example` are configured. Use separate private staging and approved-media buckets and an HTTPS delivery base URL for the approved bucket. The API issues a five-minute presigned PUT URL limited to the object key, MIME type and byte length; admin requests use the regular session, CSRF check and rate limits. Only JPEG, PNG, WebP and AVIF files up to 10 MiB are accepted.
+
+After upload, the admin calls the completion endpoint. The backend reads the private staging object, checks the recorded length and Content-Type, hashes the original downloaded bytes with SHA-256, validates the raster signature, copies the verified object to the approved bucket with immutable cache headers, and independently reads and hashes the approved copy. It then records approval and an audit row in PostgreSQL and removes the staging object. A cleanup failure is surfaced and completion can be retried. Do not link an image to a product until its media status is approved. The image bytes remain outside PostgreSQL and the Git repository.
+
+The current R2 S3-compatible API documents that the `x-amz-checksum-algorithm` request header is unsupported, so this workflow does not claim an R2-provided full-object checksum: it computes SHA-256 from the downloaded staging bytes and verifies the promoted copy independently. See [R2 S3 compatibility](https://developers.cloudflare.com/r2/api/s3/api/), [presigned URLs](https://developers.cloudflare.com/r2/api/s3/presigned-urls/) and [Go SDK setup](https://developers.cloudflare.com/r2/examples/aws/aws-sdk-go/).
+
+Local unit tests can validate the signing contract and workflow ordering without contacting Cloudflare. No Cloudflare credentials, bucket, or delivery domain are currently available here, so live upload, CORS, CDN delivery, R2 permissions, and production migration have not been verified. Configure exact storefront origins and `Content-Type` in bucket CORS; let the browser set `Content-Length` from the selected file bytes.
+
 The reproducible manifest is [`asset-migration-manifest.json`](asset-migration-manifest.json). Generate it from the repository root with:
 
 ```powershell

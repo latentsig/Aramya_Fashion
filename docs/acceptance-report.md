@@ -148,3 +148,9 @@ This report tracks verified milestones and does not claim full e-commerce accept
 - The manifest records 90 source file copies representing 46 unique binaries (4,603,871 bytes), with 44 duplicate copies grouped by checksum. It includes candidate object keys and references for all 39 products plus five category images; no catalog image reference is missing.
 - `node scripts/migrate-r2/create-media-manifest.mjs` and its `--check` verification passed. No original asset was moved or deleted.
 - R2 uploads and storage-side checksum verification were not attempted: no account ID, access keys, buckets, or delivery domain are configured. Database media records and `product_images` remain unchanged. See [R2 media migration instructions](r2-media-migration.md).
+
+## Admin R2 media upload — implemented, local verification pending
+
+- Added optional R2 startup configuration, a five-minute signed direct upload to private staging, image metadata persistence/audit, content signature/size/SHA-256 verification, promotion to a separate approved bucket, and retryable staging cleanup.
+- Added admin role and existing CSRF protections, rate limits, sanitized API errors, approved-image picker integration, and documented OpenAPI paths.
+- Credentials are not configured, so no live R2 request or upload was made. Browser CORS, bucket permissions, public delivery, DB integration, and frontend upload interaction remain unverified. The API returns 503 when R2 is unset. No original image was migrated or removed.
