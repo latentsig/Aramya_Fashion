@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link } from 'expo-router';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -19,13 +19,15 @@ export default function CheckoutScreen() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [result, setResult] = useState<{ order: CheckoutOrder; quote: CheckoutQuote } | null>(null);
+  const idempotencyKey = useRef('');
 
   async function submit() {
     if (Object.values(form).some((value) => !value.trim()) || !/^\S+@\S+\.\S+$/.test(form.email)) {
       setError('Enter your contact and delivery details, including a valid email.'); return;
     }
     setBusy(true); setError('');
-    try { setResult(await createDemoOrder(form, `mobile-demo-${Date.now()}-${Math.random().toString(36).slice(2)}`)); }
+    if (!idempotencyKey.current) idempotencyKey.current = `mobile-demo-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    try { setResult(await createDemoOrder(form, idempotencyKey.current)); }
     catch (cause) { setError(cause instanceof Error ? cause.message : 'Could not save the demo order. Please try again.'); }
     finally { setBusy(false); }
   }
@@ -41,7 +43,7 @@ export default function CheckoutScreen() {
     </View> : <>
       <Text style={styles.note}>A simple demo order will be saved to the API. Payment is not enabled here.</Text>
       {fields.map(({ key, label, keyboard }) => <View key={key} style={styles.field}>
-        <Text style={styles.label}>{label}</Text><TextInput value={form[key]} onChangeText={(value) => setForm((current) => ({ ...current, [key]: value }))} keyboardType={keyboard ?? 'default'} autoCapitalize={key === 'email' ? 'none' : 'words'} style={styles.input} />
+        <Text style={styles.label}>{label}</Text><TextInput value={form[key]} onChangeText={(value) => { if (error) idempotencyKey.current = ''; setError(''); setForm((current) => ({ ...current, [key]: value })); }} keyboardType={keyboard ?? 'default'} autoCapitalize={key === 'email' ? 'none' : 'words'} style={styles.input} />
       </View>)}
       {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
       <Pressable disabled={busy} onPress={() => void submit()} style={[styles.button, busy && styles.disabled]}>{busy ? <ActivityIndicator color={Brand.white} /> : <Text style={styles.buttonText}>SAVE DEMO ORDER</Text>}</Pressable>
