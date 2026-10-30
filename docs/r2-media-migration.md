@@ -8,7 +8,9 @@ After upload, the admin calls the completion endpoint. The backend reads the pri
 
 The current R2 S3-compatible API documents that the `x-amz-checksum-algorithm` request header is unsupported, so this workflow does not claim an R2-provided full-object checksum: it computes SHA-256 from the downloaded staging bytes and verifies the promoted copy independently. See [R2 S3 compatibility](https://developers.cloudflare.com/r2/api/s3/api/), [presigned URLs](https://developers.cloudflare.com/r2/api/s3/presigned-urls/) and [Go SDK setup](https://developers.cloudflare.com/r2/examples/aws/aws-sdk-go/).
 
-Local unit tests can validate the signing contract and workflow ordering without contacting Cloudflare. No Cloudflare credentials, bucket, or delivery domain are currently available here, so live upload, CORS, CDN delivery, R2 permissions, and production migration have not been verified. Configure exact storefront origins and `Content-Type` in bucket CORS; let the browser set `Content-Length` from the selected file bytes.
+The admin product editor now drives this flow: it SHA-256 hashes the selected image in the browser, requests a CSRF-protected intent, PUTs the bytes directly to R2, and calls completion. On success it selects the approved object key for the product. Storefront and admin previews resolve keys under `products/`, `brand/` and `collections/` against `VITE_MEDIA_BASE_URL`; legacy keys continue using preserved `/media/<filename>` assets. Configure only the approved delivery domain in frontend configuration; never put R2 API credentials in frontend source.
+
+Local unit tests validate the signing contract and workflow ordering without contacting Cloudflare. No Cloudflare credentials, bucket, or delivery domain are currently available here, so live upload, CORS, CDN delivery, R2 permissions, and production migration have not been verified. Configure exact storefront origins and `Content-Type` in bucket CORS; let the browser set `Content-Length` from the selected file bytes.
 
 The reproducible manifest is [`asset-migration-manifest.json`](asset-migration-manifest.json). Generate it from the repository root with:
 

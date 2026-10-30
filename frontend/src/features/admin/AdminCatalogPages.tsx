@@ -6,6 +6,7 @@ import {
   createAdminCategory, createAdminProduct, fetchAdminCategories, fetchAdminProduct, fetchAdminProducts,
   fetchCatalogImageOptions, updateAdminCategory, updateAdminProduct, type AdminCategory, type AdminProduct,
   type AdminProductDetail, type AdminProductVariant, type CategoryWriteInput, type ImageOption, type ProductWriteInput,
+  uploadCatalogImage,
 } from './catalogAdminApi';
 import './admin-catalog.css';
 
@@ -29,7 +30,7 @@ function toPaise(value: string): number | null {
   return Number.isSafeInteger(paise) && paise <= 100_000_000_000 ? paise : null;
 }
 function priceToRupees(paise: number) { return (paise / 100).toFixed(2); }
-function assetURL(key: string) { return imageUrl(key.split(/[\\/]/).at(-1) ?? key); }
+function assetURL(key: string) { return imageUrl(key); }
 function friendly(error: unknown) {
   if (error instanceof AdminApiError && error.status === 401) return 'Sign in with an administrator account to manage the catalog.';
   if (error instanceof AdminApiError && error.status === 403) return 'Your account does not have administrator access.';
@@ -63,6 +64,8 @@ export function AdminProductsPage() {
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadNotice, setUploadNotice] = useState('');
   const [formOpen, setFormOpen] = useState(false);
   const [failure, setFailure] = useState('');
   const [notice, setNotice] = useState('');
@@ -86,7 +89,22 @@ export function AdminProductsPage() {
   }, [search, status, categoryId, offset, refresh]);
 
   function applySearch(event: FormEvent<HTMLFormElement>) { event.preventDefault(); setOffset(0); setSearch(searchInput.trim()); }
-  function newProduct() { setEditing(null); setDraft({ ...blankProduct, variants: blankProduct.variants.map((variant) => ({ ...variant })) }); setFormOpen(true); setNotice(''); }
+  function newProduct() { setEditing(null); setDraft({ ...blankProduct, variants: blankProduct.variants.map((variant) => ({ ...variant })) }); setFormOpen(true); setNotice(''); setUploadNotice(''); }
+
+  async function uploadImage(file: File | undefined) {
+    setUploadNotice('');
+    if (!file) return;
+    const category = categories.find((item) => item.id === draft.categoryId);
+    if (!category) { setUploadNotice('Choose the product category before uploading its image.'); return; }
+    setUploading(true);
+    try {
+      const option = await uploadCatalogImage(file, category.slug, draft.name.trim() || file.name);
+      setImages((current) => [option, ...current.filter((item) => item.imageKey !== option.imageKey)]);
+      setDraft((current) => ({ ...current, imageKey: option.imageKey }));
+      setUploadNotice('Image uploaded, verified, and approved. It is ready to use.');
+    } catch (error) { setUploadNotice(friendly(error)); }
+    finally { setUploading(false); }
+  }
 
   async function editProduct(product: AdminProduct) {
     setFailure(''); setNotice('');
@@ -144,12 +162,13 @@ export function AdminProductsPage() {
         <div className="admin-form-grid"><label>Product name<input required minLength={2} maxLength={160} value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} /></label>
           <label>URL slug<input required pattern="[a-z0-9]+(-[a-z0-9]+)*" maxLength={160} value={draft.slug} onChange={(event) => setDraft({ ...draft, slug: event.target.value })} /></label>
           <label>Product SKU<input required pattern="[A-Za-z0-9][A-Za-z0-9_-]{1,63}" maxLength={64} value={draft.sku} onChange={(event) => setDraft({ ...draft, sku: event.target.value })} /></label>
-          <label>Category<select required value={draft.categoryId} onChange={(event) => setDraft({ ...draft, categoryId: event.target.value })}><option value="">Choose category</option>{categories.map((category) => <option key={category.id} value={category.id}>{category.name}{category.active ? '' : ' · inactive'}</option>)}</select></label>
+          <label>Category<select required disabled={uploading} value={draft.categoryId} onChange={(event) => setDraft({ ...draft, categoryId: event.target.value })}><option value="">Choose category</option>{categories.map((category) => <option key={category.id} value={category.id}>{category.name}{category.active ? '' : ' · inactive'}</option>)}</select></label>
           <label>Price (₹)<input required inputMode="decimal" type="number" min="0" max="1000000000" step="0.01" value={draft.price} onChange={(event) => setDraft({ ...draft, price: event.target.value })} /></label>
           <label>Publication<select value={draft.status} onChange={(event) => setDraft({ ...draft, status: event.target.value as ProductDraft['status'] })}><option value="draft">Draft</option><option value="active">Active</option><option value="archived">Archived</option></select></label>
           <label>Inventory policy<select value={draft.inventoryPolicy} onChange={(event) => setDraft({ ...draft, inventoryPolicy: event.target.value as ProductDraft['inventoryPolicy'] })}><option value="made_to_order">Made to order</option><option value="tracked">Tracked stock</option><option value="untracked">Untracked</option></select></label>
           <label>Primary catalog image<select required value={draft.imageKey} onChange={(event) => setDraft({ ...draft, imageKey: event.target.value })}><option value="">Choose existing asset</option>{images.map((image) => <option key={image.imageKey} value={image.imageKey}>{image.label}</option>)}</select></label>
         </div>
+        <div className="admin-media-upload"><label htmlFor="catalog-image-upload">Upload a new product image<input id="catalog-image-upload" type="file" accept="image/jpeg,image/png,image/webp,image/avif" disabled={uploading || saving} onChange={(event) => { const file = event.currentTarget.files?.[0]; void uploadImage(file); event.currentTarget.value = ''; }} /></label><p>JPEG, PNG, WebP or AVIF · up to 10 MB. Uploads are private until storage verification succeeds.</p>{uploadNotice && <p role={uploadNotice.startsWith('Image uploaded') ? 'status' : 'alert'}>{uploadNotice}</p>}</div>
         {draft.imageKey && <div className="admin-selected-image"><img src={assetURL(draft.imageKey)} alt="Selected catalog asset preview" /><span>Existing catalog asset · {draft.imageKey}</span></div>}
         <label>Description<textarea rows={4} maxLength={5000} value={draft.description} onChange={(event) => setDraft({ ...draft, description: event.target.value })} /></label>
         <fieldset className="admin-variant-editor"><legend>Variants · {draft.variants.length}/50</legend><p>Keep existing variants in the form. Deactivate a variant to hide it from new orders while preserving order history.</p>
@@ -165,7 +184,7 @@ export function AdminProductsPage() {
         </fieldset>
         {editing && <p className="admin-version-note">Editing version {editing.version}. The server rejects stale edits and retains historical order records.</p>}
         <div className="admin-catalog-actions"><button className="button button-red" type="submit" disabled={saving || categories.length === 0 || images.length === 0}>{saving ? 'Saving…' : editing ? 'Save product' : 'Create product'}</button><button className="button button-light" type="button" disabled={saving} onClick={() => { setFormOpen(false); setNotice(''); }}>Cancel</button></div>
-        {images.length === 0 && <p className="admin-version-note">No approved existing catalog images are available. R2 media uploads are not configured yet.</p>}
+        {images.length === 0 && !uploading && !uploadNotice && <p className="admin-version-note">No approved catalog images are available yet. Configure R2 to upload product imagery.</p>}
       </form>
     </section></div>}
   </main>;

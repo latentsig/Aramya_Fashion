@@ -152,5 +152,6 @@ This report tracks verified milestones and does not claim full e-commerce accept
 ## Admin R2 media upload — implemented, local verification pending
 
 - Added optional R2 startup configuration, a five-minute signed direct upload to private staging, image metadata persistence/audit, content signature/size/SHA-256 verification, promotion to a separate approved bucket, and retryable staging cleanup.
-- Added admin role and existing CSRF protections, rate limits, sanitized API errors, approved-image picker integration, and documented OpenAPI paths.
-- Credentials are not configured, so no live R2 request or upload was made. Browser CORS, bucket permissions, public delivery, DB integration, and frontend upload interaction remain unverified. The API returns 503 when R2 is unset. No original image was migrated or removed.
+- Added admin role and existing CSRF protections, rate limits, sanitized API errors, approved-image picker integration, documented OpenAPI paths, and a product editor that uploads directly to staging and selects the approved result. Storefront/admin media URL resolution preserves the object key path and supports the configured approved-media domain.
+- `npm test -- --run`: 15 files and 29 tests passed. `npm run build` passed with existing upstream Zod annotation and bundle-size warnings. Tests cover browser hashing/request sequence, signed PUT headers, approval completion, and visible failure when R2 is not configured.
+- Credentials are not configured, so no live R2 request or upload was made. Browser CORS, bucket permissions, public delivery, database persistence against PostgreSQL, and real-account upload remain unverified. The API returns 503 when R2 is unset. No original image was migrated or removed.

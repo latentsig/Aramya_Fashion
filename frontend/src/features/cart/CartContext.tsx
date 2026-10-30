@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import type { Product } from '../products/catalog';
+import { imageReferenceFromKey, type Product } from '../products/catalog';
 
 type CartLine = { id: string; variantId: string; product: Product; quantity: number };
 type CartValue = {
@@ -95,7 +95,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       name: line.name,
       category: line.category,
       label: line.categoryName,
-      image: line.imageKey.split(/[\\/]/).at(-1) ?? line.imageKey,
+      image: imageReferenceFromKey(line.imageKey),
       priceRupees: line.unitPricePaise / 100,
     },
   })), [snapshot.lines]);

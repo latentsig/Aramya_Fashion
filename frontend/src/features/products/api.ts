@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { imageUrl, type Product } from './catalog';
+import { imageReferenceFromKey, imageUrl, type Product } from './catalog';
 
 const productSchema = z.object({
   id: z.string().uuid(),
@@ -59,7 +59,7 @@ export async function fetchCatalogProducts(category?: string, signal?: AbortSign
     name: product.name,
     category: product.categorySlug,
     label: product.categoryName,
-    image: product.imageKey.split(/[\\/]/).at(-1) ?? product.imageKey,
+    image: imageReferenceFromKey(product.imageKey),
     priceRupees: product.pricePaise / 100,
   }));
 }
@@ -77,7 +77,7 @@ export async function fetchCatalogProduct(slug: string, signal?: AbortSignal): P
     name: data.name,
     category: data.categorySlug,
     label: data.categoryName,
-    image: data.imageKey.split(/[\\/]/).at(-1) ?? data.imageKey,
+    image: imageReferenceFromKey(data.imageKey),
     priceRupees: data.pricePaise / 100,
     description: data.description,
     inventoryPolicy: data.inventoryPolicy,

@@ -15,6 +15,11 @@ const productSummarySchema = z.object({
 });
 const productDetailSchema = productSummarySchema.extend({ variants: z.array(variantSchema) });
 const imageOptionSchema = z.object({ imageKey: z.string(), label: z.string() });
+const mediaIntentSchema = z.object({ data: z.object({
+  media: z.object({ id: z.string().uuid(), objectKey: z.string(), status: z.string() }),
+  uploadUrl: z.string().url(), expiresAt: z.string(), requiredHeaders: z.record(z.string(), z.string()),
+}) });
+const mediaCompleteSchema = z.object({ data: z.object({ id: z.string().uuid(), objectKey: z.string(), status: z.literal('approved'), publicUrl: z.string().url() }) });
 const pageSchema = <T extends z.ZodTypeAny>(item: T) => z.object({
   data: z.array(item), pagination: z.object({ limit: z.number(), offset: z.number(), count: z.number(), hasMore: z.boolean() }),
 });
@@ -61,6 +66,39 @@ export async function fetchAdminProduct(id: string, signal?: AbortSignal): Promi
 export async function fetchCatalogImageOptions(signal?: AbortSignal): Promise<ImageOption[]> {
   const response = await fetch(`${apiBase}/api/v1/admin/catalog/image-options`, { credentials: 'include', headers: { Accept: 'application/json' }, signal });
   return z.object({ data: z.array(imageOptionSchema) }).parse(await payload(response, 'Catalog images could not be loaded.')).data;
+}
+
+async function csrfToken(): Promise<string> {
+  const response = await fetch(`${apiBase}/api/v1/auth/csrf`, { credentials: 'include', headers: { Accept: 'application/json' } });
+  const data = await response.json().catch(() => null) as { csrfToken?: string; error?: { message?: string } } | null;
+  if (!response.ok || !data?.csrfToken) throw new AdminApiError(data?.error?.message ?? 'Could not prepare a secure media upload.', response.status);
+  return data.csrfToken;
+}
+
+async function mediaMutation(path: string, token: string, body: unknown): Promise<unknown> {
+  const response = await fetch(`${apiBase}/api/v1/admin/media/${path}`, {
+    method: 'POST', credentials: 'include', headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-CSRF-Token': token }, body: JSON.stringify(body),
+  });
+  return payload(response, 'The media request could not be completed.');
+}
+
+function toHex(bytes: ArrayBuffer): string {
+  return Array.from(new Uint8Array(bytes), (value) => value.toString(16).padStart(2, '0')).join('');
+}
+
+export async function uploadCatalogImage(file: File, category: string, altText: string): Promise<ImageOption> {
+  if (file.size <= 0 || file.size > 10 * 1024 * 1024) throw new Error('Choose an image between 1 byte and 10 MB.');
+  if (!['image/jpeg', 'image/png', 'image/webp', 'image/avif'].includes(file.type)) throw new Error('Choose a JPEG, PNG, WebP or AVIF image.');
+  if (!globalThis.crypto?.subtle) throw new Error('Secure SHA-256 hashing is unavailable in this browser. Use HTTPS or localhost.');
+  const digest = toHex(await crypto.subtle.digest('SHA-256', await file.arrayBuffer()));
+  const token = await csrfToken();
+  const intent = mediaIntentSchema.parse(await mediaMutation('upload-intent', token, {
+    originalFilename: file.name, mimeType: file.type, byteSize: file.size, sha256: digest, altText, category,
+  })).data;
+  const uploaded = await fetch(intent.uploadUrl, { method: 'PUT', headers: intent.requiredHeaders, body: file });
+  if (!uploaded.ok) throw new Error(`Image upload to private storage failed (${uploaded.status}). Request a fresh upload and try again.`);
+  const completed = mediaCompleteSchema.parse(await mediaMutation('complete', token, { intentId: intent.media.id })).data;
+  return { imageKey: completed.objectKey, label: file.name };
 }
 
 async function mutate<T>(path: string, method: 'POST' | 'PATCH', input: unknown, schema: z.ZodType<T>, fallback: string): Promise<T> {
