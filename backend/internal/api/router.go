@@ -17,6 +17,7 @@ import (
 	"github.com/latentsig/aramya-fashion/backend/internal/catalog"
 	"github.com/latentsig/aramya-fashion/backend/internal/checkout"
 	"github.com/latentsig/aramya-fashion/backend/internal/observability"
+	"github.com/latentsig/aramya-fashion/backend/internal/payments"
 )
 
 type RouterConfig struct {
@@ -24,6 +25,7 @@ type RouterConfig struct {
 	Auth                  *auth.Service
 	Cart                  *cart.Service
 	Checkout              *checkout.Service
+	CheckoutPayments      CheckoutPaymentGateway
 	Orders                OrderReader
 	StudioRequests        StudioRequestWriter
 	AdminStudio           AdminStudioRepository
@@ -86,7 +88,10 @@ func NewRouter(cfg RouterConfig) *gin.Engine {
 		registerCartRoutes(v1, cfg.Cart, cfg.Auth, cfg.SessionCookieSecure, cookieSameSite(cfg.SessionCookieSameSite), cfg.Logger)
 	}
 	if cfg.Checkout != nil && cfg.Cart != nil {
-		registerCheckoutRoutes(v1, cfg.Checkout, cfg.Cart, cfg.Auth, cfg.SessionCookieSecure, cookieSameSite(cfg.SessionCookieSameSite), cfg.Logger, cfg.Metrics)
+		registerCheckoutRoutes(v1, cfg.Checkout, cfg.Cart, cfg.Auth, cfg.SessionCookieSecure, cookieSameSite(cfg.SessionCookieSameSite), cfg.Logger, cfg.Metrics, cfg.CheckoutPayments != nil)
+		if cfg.CheckoutPayments != nil {
+			registerCheckoutPaymentRoutes(v1, cfg.CheckoutPayments, cfg.Cart, cfg.Auth, cfg.Logger)
+		}
 	}
 	if cfg.Orders != nil {
 		registerOrderRoutes(v1, cfg.Orders, cfg.Auth, cfg.Logger)
@@ -150,6 +155,8 @@ func NewRouter(cfg RouterConfig) *gin.Engine {
 	})
 	return router
 }
+
+var _ CheckoutPaymentGateway = (*payments.CheckoutPaymentService)(nil)
 
 func parseBoundedInt(value string, fallback, min, max int) (int, error) {
 	if strings.TrimSpace(value) == "" {

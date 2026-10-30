@@ -557,7 +557,7 @@ paths:
         - in: path
           name: id
           required: true
-          schema: { type: string, format: uuid }
+          schema: { type: string, format: uuid, pattern: '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$' }
         - in: cookie
           name: aramya_csrf
           required: true
@@ -655,6 +655,82 @@ paths:
         '200': { description: Idempotent replay of the original order response }
         '400': { description: Invalid checkout details or idempotency key }
         '409': { description: Empty cart, insufficient stock, or idempotency conflict }
+  /api/v1/checkout/orders/{id}/payment:
+    post:
+      summary: Start or safely replay a test-mode Razorpay payment attempt for an owned pending order
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+        - in: header
+          name: Idempotency-Key
+          required: true
+          schema: { type: string, minLength: 16, maxLength: 128 }
+        - in: cookie
+          name: aramya_csrf
+          required: true
+          schema: { type: string }
+        - in: header
+          name: X-CSRF-Token
+          required: true
+          schema: { type: string }
+      security: [{ guestCartCookie: [], csrfToken: [], csrfCookie: [] }, { sessionCookie: [], csrfToken: [], csrfCookie: [] }]
+      responses:
+        '200':
+          description: Server-created Razorpay test order and public checkout key
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    required: [attemptId, orderId, orderNumber, providerOrderId, keyId, amountPaise, currency, status]
+                    properties:
+                      attemptId: { type: string, format: uuid }
+                      orderId: { type: string, format: uuid }
+                      orderNumber: { type: string }
+                      providerOrderId: { type: string }
+                      keyId: { type: string, pattern: '^rzp_test_' }
+                      amountPaise: { type: integer, format: int64 }
+                      currency: { type: string, const: INR }
+                      status: { type: string, const: pending }
+        '400': { description: Invalid idempotency key }
+        '404': { description: Order is not owned by this customer or guest cart }
+        '409': { description: Order cannot be paid or an earlier attempt needs reconciliation }
+        '503': { description: Razorpay provider request failed; the attempt remains unresolved }
+  /api/v1/payments/razorpay/verify:
+    post:
+      summary: Verify a Razorpay callback against the stored order and authoritative provider payment state
+      security: [{ guestCartCookie: [], csrfToken: [], csrfCookie: [] }, { sessionCookie: [], csrfToken: [], csrfCookie: [] }]
+      parameters:
+        - in: cookie
+          name: aramya_csrf
+          required: true
+          schema: { type: string }
+        - in: header
+          name: X-CSRF-Token
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [orderId, razorpayOrderId, razorpayPaymentId, razorpaySignature]
+              properties:
+                orderId: { type: string, format: uuid }
+                razorpayOrderId: { type: string }
+                razorpayPaymentId: { type: string }
+                razorpaySignature: { type: string, pattern: '^[a-fA-F0-9]{64}$' }
+      responses:
+        '200': { description: Server-verified payment and order state; only captured payments can confirm an order }
+        '400': { description: Invalid or mismatched payment callback }
+        '404': { description: Payment order is not owned by this customer or guest cart }
+        '409': { description: Payment is not captured yet }
+        '503': { description: Razorpay state could not be confirmed }
   /api/v1/orders:
     get:
       summary: List orders belonging to the authenticated customer
@@ -827,6 +903,10 @@ paths:
           description: Product not found
 components:
   securitySchemes:
+    guestCartCookie:
+      type: apiKey
+      in: cookie
+      name: aramya_cart_guest
     sessionCookie:
       type: apiKey
       in: cookie

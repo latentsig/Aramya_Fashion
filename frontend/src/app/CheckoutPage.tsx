@@ -5,7 +5,45 @@ import { useCart } from '../features/cart/CartContext';
 
 type Quote = { subtotalPaise: number; totalPaise: number; quoteStatus: string; paymentAvailable: boolean };
 type Order = { id: string; orderNumber: string; status: string; totalPaise: number };
+type PaymentSession = { orderId: string; orderNumber: string; providerOrderId: string; keyId: string; amountPaise: number; currency: string };
+type PaymentVerification = { orderId: string; orderNumber: string; orderStatus: string; paymentStatus: string };
 const apiBase = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
+
+type RazorpayCallback = { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string };
+type RazorpayOptions = {
+  key: string; amount: number; currency: string; order_id: string; name: string; description: string;
+  theme: { color: string };
+  handler: (result: RazorpayCallback) => void;
+  modal: { ondismiss: () => void };
+};
+declare global { interface Window { Razorpay?: new (options: RazorpayOptions) => { open: () => void; on: (event: string, callback: (error: { description?: string }) => void) => void } } }
+
+async function openRazorpay(session: PaymentSession, onResult: (result: RazorpayCallback) => void, onDismiss: () => void, onFailure: (message: string) => void) {
+  if (!window.Razorpay) {
+    await new Promise<void>((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.async = true;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error('Razorpay checkout could not be loaded. Please try again while online.'));
+      document.head.appendChild(script);
+    });
+  }
+  if (!window.Razorpay) throw new Error('Razorpay checkout is unavailable in this browser.');
+  const checkout = new window.Razorpay({
+    key: session.keyId,
+    amount: session.amountPaise,
+    currency: session.currency,
+    order_id: session.providerOrderId,
+    name: 'Aramya Fashion House',
+    description: `Order ${session.orderNumber}`,
+    theme: { color: '#8c1721' },
+    handler: onResult,
+    modal: { ondismiss: onDismiss },
+  });
+  checkout.on('payment.failed', (failure) => onFailure(failure.description ?? 'Payment was not completed. You can retry from your order.'));
+  checkout.open();
+}
 
 async function postJSON<T>(path: string, body: unknown, extraHeaders: Record<string, string> = {}): Promise<T> {
   const csrfResponse = await fetch(`${apiBase}/api/v1/auth/csrf`, { credentials: 'include', headers: { Accept: 'application/json' } });
@@ -25,10 +63,12 @@ async function postJSON<T>(path: string, body: unknown, extraHeaders: Record<str
 export function CheckoutPage() {
   const { lines, subtotal, loading, error: cartError, refresh } = useCart();
   const [submitting, setSubmitting] = useState(false);
+  const [paymentStarting, setPaymentStarting] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [quote, setQuote] = useState<Quote | null>(null);
   const [order, setOrder] = useState<Order | null>(null);
   const idempotencyKey = useRef(crypto.randomUUID());
+  const paymentIdempotencyKey = useRef(crypto.randomUUID());
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -56,20 +96,44 @@ export function CheckoutPage() {
       const nextOrder = await postJSON<Order>('/checkout/orders', details, { 'Idempotency-Key': idempotencyKey.current });
       setOrder(nextOrder);
       await refresh();
+      if (nextQuote.paymentAvailable) {
+        setPaymentStarting(true);
+        const session = await postJSON<PaymentSession>(`/checkout/orders/${nextOrder.id}/payment`, {}, { 'Idempotency-Key': paymentIdempotencyKey.current });
+        await openRazorpay(session, async (callback) => {
+          try {
+            const result = await postJSON<PaymentVerification>('/payments/razorpay/verify', {
+              orderId: nextOrder.id,
+              razorpayOrderId: callback.razorpay_order_id,
+              razorpayPaymentId: callback.razorpay_payment_id,
+              razorpaySignature: callback.razorpay_signature,
+            });
+            if (result.orderStatus === 'paid' && result.paymentStatus === 'captured') {
+              setOrder((current) => current ? { ...current, status: 'paid' } : current);
+              setCheckoutError(null);
+            } else {
+              setCheckoutError('Payment was verified but is not captured yet. The order is still awaiting confirmation.');
+            }
+          } catch (cause) {
+            setCheckoutError(cause instanceof Error ? cause.message : 'Payment confirmation is pending. Please check your order status before retrying.');
+          }
+        }, () => setCheckoutError('Checkout was closed. Your order remains pending payment.'), setCheckoutError);
+        setPaymentStarting(false);
+      }
     } catch (cause) {
       setCheckoutError(cause instanceof Error ? cause.message : 'Checkout could not be completed. Please retry.');
     } finally {
+      setPaymentStarting(false);
       setSubmitting(false);
     }
   }
 
   if (loading) return <main className="section-pad"><p role="status">Loading your bag…</p></main>;
   if (!lines.length && !order) return <main className="section-pad"><h1>Your bag is empty.</h1>{cartError && <p role="alert">{cartError}</p>}<Link to="/collections">Explore collections ↗</Link></main>;
-  if (order) return <main className="section-pad checkout-page"><div className="checkout-title"><p className="eyebrow">ORDER REQUEST SAVED</p><h1>Thank you for <em>choosing Aramya.</em></h1><p>Order {order.orderNumber} is saved as pending payment. Online payment is unavailable until the Razorpay test account is configured.</p></div><section className="checkout-summary"><p>Status: <strong>{order.status.replaceAll('_', ' ')}</strong></p><p>Provisional total: <strong>{formatPrice(order.totalPaise / 100)}</strong></p><p className="checkout-note">This is not a completed payment. The studio must confirm delivery and applicable charges before payment can be enabled.</p><Link className="button button-red" to="/collections">Continue browsing ↗</Link></section></main>;
+  if (order) return <main className="section-pad checkout-page"><div className="checkout-title"><p className="eyebrow">{order.status === 'paid' ? 'PAYMENT CONFIRMED' : 'ORDER REQUEST SAVED'}</p><h1>Thank you for <em>choosing Aramya.</em></h1><p>Order {order.orderNumber} is saved with status {order.status.replaceAll('_', ' ')}.</p></div><section className="checkout-summary"><p>Status: <strong>{order.status.replaceAll('_', ' ')}</strong></p><p>Order total: <strong>{formatPrice(order.totalPaise / 100)}</strong></p>{paymentStarting && <p role="status">Preparing secure Razorpay test checkout…</p>}{checkoutError && <p role="alert" className="checkout-note">{checkoutError}</p>}{order.status !== 'paid' && <p className="checkout-note">This order is not confirmed as paid. Check your order status before trying another payment.</p>}<Link className="button button-red" to="/collections">Continue browsing ↗</Link></section></main>;
 
   return (
     <main className="section-pad checkout-page">
-      <div className="checkout-title"><p className="eyebrow">MADE TO ORDER, MADE PERSONAL</p><h1>Let’s make it <em>yours.</em></h1><p>Share your details so our Ankola studio can confirm fit, availability and delivery with you.</p></div>
+      <div className="checkout-title"><p className="eyebrow">MADE TO ORDER, MADE PERSONAL</p><h1>Let’s make it <em>yours.</em></h1><p>The studio will confirm fit and availability. Payment opens only when this server has a confirmed payable quote.</p></div>
       <div className="checkout-layout">
         <form className="checkout-form" onSubmit={submit}>
           <p className="eyebrow">01 · YOUR DETAILS</p>
@@ -86,14 +150,14 @@ export function CheckoutPage() {
             <label className="span-two">Notes for the studio<textarea name="notes" rows={3} maxLength={1000} /></label>
           </div>
           {checkoutError && <p role="alert" className="checkout-note">{checkoutError}</p>}
-          <p className="checkout-note">Submitting saves a pending order request. It does not charge you. Payment stays disabled until test credentials and delivery/tax rules are configured.</p>
+          <p className="checkout-note">Submitting first saves a pending order. When this deployment has approved test credentials and confirmed payable pricing, Razorpay test checkout opens next; otherwise no payment is taken.</p>
           <button type="submit" className="button button-red checkout-submit" disabled={submitting}>{submitting ? 'Saving your order…' : 'Save order request'}</button>
         </form>
         <aside className="checkout-summary">
           <p className="eyebrow">YOUR SELECTION</p><h2>Order summary</h2>
           {lines.map(({ product, quantity, variantId }) => <p className="checkout-row" key={variantId}><span>{quantity} × {product.name}</span><strong>{formatPrice(product.priceRupees * quantity)}</strong></p>)}
           <p className="summary-total"><span>Cart subtotal</span><strong>{formatPrice(subtotal)}</strong></p>
-          {quote && <div role="status"><p className="checkout-row"><span>Provisional quote</span><strong>{formatPrice(quote.totalPaise / 100)}</strong></p><small>Shipping and tax are not configured; this estimate is not a payable total.</small></div>}
+          {quote && <div role="status"><p className="checkout-row"><span>{quote.quoteStatus === 'final' ? 'Final payable quote' : 'Provisional quote'}</span><strong>{formatPrice(quote.totalPaise / 100)}</strong></p><small>{quote.quoteStatus === 'final' ? 'This amount is the confirmed total for the current checkout.' : 'Shipping and tax are not configured; this estimate is not a payable total.'}</small></div>}
           <Link className="text-link" to="/cart">Edit bag ↗</Link>
         </aside>
       </div>

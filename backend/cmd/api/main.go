@@ -23,6 +23,7 @@ import (
 	"github.com/latentsig/aramya-fashion/backend/internal/media"
 	"github.com/latentsig/aramya-fashion/backend/internal/observability"
 	"github.com/latentsig/aramya-fashion/backend/internal/orders"
+	"github.com/latentsig/aramya-fashion/backend/internal/payments"
 	"github.com/latentsig/aramya-fashion/backend/internal/storage"
 )
 
@@ -92,6 +93,21 @@ func main() {
 			os.Exit(1)
 		}
 	}
+	var checkoutPayments *payments.CheckoutPaymentService
+	if cfg.Razorpay != nil && cfg.CheckoutPricingFinal {
+		provider, providerErr := payments.NewRazorpayClient(payments.Credentials{
+			KeyID: cfg.Razorpay.KeyID, KeySecret: cfg.Razorpay.KeySecret, WebhookSecret: cfg.Razorpay.WebhookSecret,
+		}, nil)
+		if providerErr != nil {
+			logger.Error("razorpay_initialization_failed", "error_type", fmt.Sprintf("%T", providerErr))
+			os.Exit(1)
+		}
+		checkoutPayments, err = payments.NewCheckoutPaymentService(pool, provider, cfg.QueryTimeout)
+		if err != nil {
+			logger.Error("checkout_payment_initialization_failed", "error_type", fmt.Sprintf("%T", err))
+			os.Exit(1)
+		}
+	}
 
 	router := api.NewRouter(api.RouterConfig{
 		Metrics:            observability.New(),
@@ -100,6 +116,7 @@ func main() {
 		Auth:               authService,
 		Cart:               cartService,
 		Checkout:           checkoutService,
+		CheckoutPayments:   checkoutPayments,
 		Orders:             orderRepository,
 		AdminOrders:        adminOrderRepository,
 		AdminOverview:      adminOverviewRepository,
