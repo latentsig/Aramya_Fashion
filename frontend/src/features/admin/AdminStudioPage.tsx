@@ -136,6 +136,7 @@ export function AdminStudioPage() {
         <Link className="admin-studio-back" to="/">Back to storefront ↗</Link>
       </div>
       <nav className="admin-studio-tabs" aria-label="Studio request queues">
+        <Link to="/admin">Overview</Link>
         <Link to="/admin/products">Products</Link>
         <Link to="/admin/categories">Categories</Link>
         <Link to="/admin/inventory">Inventory</Link>

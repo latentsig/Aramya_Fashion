@@ -183,3 +183,10 @@ This report tracks verified milestones and does not claim full e-commerce accept
 - Added an alert rule for reservation persistence failures and a Grafana dashboard panel showing outcome counts over time. The monitoring runbook documents triage.
 - `go test -count=1 ./...` and `go vet ./...` passed. A scrape-level unit test verifies all three samples and confirms an arbitrary identifier is not exposed as a label.
 - The Prometheus/Grafana local stack was not started; no external monitoring account or alert receiver was configured.
+
+## Admin business overview — implementation and local verification
+
+- Replaced the `/admin` redirect with a responsive overview showing active catalog size, total/pending orders, studio queues, gross captured payments, processed refunds, net sales, and recent order/payment states.
+- Added an admin-role-protected PostgreSQL endpoint using a read-only repeatable-read transaction. Gross captured totals include payment attempts in captured, partially refunded, or refunded states; net sales subtract processed refunds. Pending/unverified attempts do not contribute. The response omits customer contact data.
+- Added OpenAPI documentation and links to the overview from admin navigation. Backend route tests cover admin authorization and response values; frontend tests cover KPI rendering and access errors.
+- `go test -count=1 ./...`, `go vet ./...`, the focused frontend test, and `npm run build` passed. PostgreSQL-specific overview integration coverage is guarded and was skipped because no designated ephemeral database was configured.

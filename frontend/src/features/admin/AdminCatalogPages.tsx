@@ -39,6 +39,7 @@ function friendly(error: unknown) {
 }
 function adminTabs(active: 'products' | 'categories') {
   return <nav className="admin-studio-tabs" aria-label="Admin sections">
+    <Link to="/admin">Overview</Link>
     <Link aria-current={active === 'products' ? 'page' : undefined} to="/admin/products">Products</Link>
     <Link aria-current={active === 'categories' ? 'page' : undefined} to="/admin/categories">Categories</Link>
     <Link to="/admin/inventory">Inventory</Link><Link to="/admin/orders">Orders</Link><Link to="/admin/appointments">Studio requests</Link>
