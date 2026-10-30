@@ -124,6 +124,7 @@ func main() {
 
 	stopCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
+	go checkout.RunReservationExpirationWorker(stopCtx, checkoutService, logger)
 	select {
 	case err := <-serverErrors:
 		if !errors.Is(err, http.ErrServerClosed) {
