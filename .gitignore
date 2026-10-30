@@ -7,7 +7,9 @@ frontend/*.tsbuildinfo
 .env.*
 !.env.example
 frontend/.vite/
-frontend/public/
+frontend/public/*
+!frontend/public/pwa/
+!frontend/public/pwa/**
 .gocache/
 .tmp-go-cache/
 .tmp-go-mod-cache/
