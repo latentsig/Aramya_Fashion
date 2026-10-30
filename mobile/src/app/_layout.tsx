@@ -12,6 +12,7 @@ export default function RootLayout() {
         <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: Brand.paper } }}>
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="product/[slug]" options={{ animation: 'slide_from_right' }} />
+          <Stack.Screen name="checkout" options={{ animation: 'slide_from_right' }} />
         </Stack>
       </CatalogProvider>
     </SafeAreaProvider>
