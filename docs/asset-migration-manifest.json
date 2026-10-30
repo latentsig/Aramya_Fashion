@@ -1,0 +1,1129 @@
+{
+  "version": 1,
+  "generatedBy": "scripts/migrate-r2/create-media-manifest.mjs",
+  "sourceRoots": [
+    {
+      "path": "image assests",
+      "role": "original"
+    },
+    {
+      "path": "legacy-storefront/dist/image assests",
+      "role": "legacy-dist-copy"
+    },
+    {
+      "path": "frontend/public/pwa",
+      "role": "pwa-brand"
+    },
+    {
+      "path": "mobile/assets/images",
+      "role": "native-brand"
+    }
+  ],
+  "sourceCounts": {
+    "pwa-brand": {
+      "fileCopies": 3,
+      "bytes": 17747
+    },
+    "original": {
+      "fileCopies": 43,
+      "bytes": 4586124
+    },
+    "legacy-dist-copy": {
+      "fileCopies": 42,
+      "bytes": 3749822
+    },
+    "native-brand": {
+      "fileCopies": 2,
+      "bytes": 17444
+    }
+  },
+  "totals": {
+    "fileCopies": 90,
+    "uniqueBinaries": 46,
+    "duplicateCopies": 44,
+    "duplicateGroups": 44,
+    "totalUniqueBytes": 4603871
+  },
+  "catalogReferences": {
+    "categoryImages": [
+      {
+        "id": "c03bec7c-5ef9-57e9-b27d-69a1e642bcaf",
+        "slug": "sarees",
+        "sourcePath": "image assests/saree1.jpg",
+        "objectKeyCandidate": "products/sarees/saree1.jpg"
+      },
+      {
+        "id": "4de55ac4-f153-54fd-a4ca-1d51388dd5ab",
+        "slug": "bridal",
+        "sourcePath": "image assests/bridal lehanga.jpg",
+        "objectKeyCandidate": "products/bridal/bridal-lehanga.jpg"
+      },
+      {
+        "id": "8fae2942-cd14-5474-830c-ba2ccf82831c",
+        "slug": "occasion",
+        "sourcePath": "image assests/sharara1.avif",
+        "objectKeyCandidate": "products/occasion/sharara1.avif"
+      },
+      {
+        "id": "66e7bd0d-4a60-596c-8569-9dddcfb2ef57",
+        "slug": "menswear",
+        "sourcePath": "image assests/menblazer2.jpg",
+        "objectKeyCandidate": "products/menswear/menblazer2.jpg"
+      },
+      {
+        "id": "f1a47368-3fae-5adc-b5df-81aa60e7cb72",
+        "slug": "kids",
+        "sourcePath": "image assests/kidzgown2.jpg",
+        "objectKeyCandidate": "products/kids/kidzgown2.jpg"
+      }
+    ],
+    "products": [
+      {
+        "id": "8cc755ef-de88-5e6b-8e46-79bba27921cc",
+        "slug": "the-heirloom-saree",
+        "sourcePath": "image assests/saree1.jpg",
+        "objectKeyCandidate": "products/sarees/saree1.jpg"
+      },
+      {
+        "id": "e5377d65-dca4-595c-a676-a270bf7b0d81",
+        "slug": "saanjh-silk-saree",
+        "sourcePath": "image assests/saree3.jpg",
+        "objectKeyCandidate": "products/sarees/saree3.jpg"
+      },
+      {
+        "id": "df2fe065-ae27-5133-b478-2421689d795a",
+        "slug": "rosewater-drapes",
+        "sourcePath": "image assests/saree2.jpg",
+        "objectKeyCandidate": "products/sarees/saree2.jpg"
+      },
+      {
+        "id": "0910918c-ec3c-5458-8bec-868906042dfc",
+        "slug": "temple-garden-saree",
+        "sourcePath": "image assests/saree4.jpg",
+        "objectKeyCandidate": "products/sarees/saree4.jpg"
+      },
+      {
+        "id": "086e7c77-7a0f-591d-bfdd-076af6947a49",
+        "slug": "the-meera-edit",
+        "sourcePath": "image assests/saree5.jpg",
+        "objectKeyCandidate": "products/sarees/saree5.jpg"
+      },
+      {
+        "id": "10d385e6-a2f2-5790-bd63-bc7822ef9a61",
+        "slug": "gulabi-lehenga",
+        "sourcePath": "image assests/lehanga1.jpg",
+        "objectKeyCandidate": "products/bridal/lehanga1.jpg"
+      },
+      {
+        "id": "3fd39670-63dc-56e6-8776-a3ca6d5e7a21",
+        "slug": "the-noor-edit",
+        "sourcePath": "image assests/lehanga4.jpg",
+        "objectKeyCandidate": "products/bridal/lehanga4.jpg"
+      },
+      {
+        "id": "b01988a8-5561-59a4-9710-6665263c894d",
+        "slug": "gul-mahal-lehenga",
+        "sourcePath": "image assests/lehanga2.jpg",
+        "objectKeyCandidate": "products/bridal/lehanga2.jpg"
+      },
+      {
+        "id": "acc58ff3-d10a-5242-ac37-80eabeb92152",
+        "slug": "aabha-embroidered-lehenga",
+        "sourcePath": "image assests/lehanga3.jpg",
+        "objectKeyCandidate": "products/bridal/lehanga3.jpg"
+      },
+      {
+        "id": "3b148b8b-7bfb-518d-a039-81d1aafdeb89",
+        "slug": "the-sunehri-set",
+        "sourcePath": "image assests/lehanga5.jpg",
+        "objectKeyCandidate": "products/bridal/lehanga5.jpg"
+      },
+      {
+        "id": "7db13a3b-8ca0-5f7c-a965-022f574138b7",
+        "slug": "rani-sharara-set",
+        "sourcePath": "image assests/sharara1.avif",
+        "objectKeyCandidate": "products/occasion/sharara1.avif"
+      },
+      {
+        "id": "8b408815-5c42-5f48-8fa9-c9e8d955dd19",
+        "slug": "evening-in-rose",
+        "sourcePath": "image assests/gown2.webp",
+        "objectKeyCandidate": "products/occasion/gown2.webp"
+      },
+      {
+        "id": "361ea1f4-1d9b-59a4-9514-af838d1bc712",
+        "slug": "the-celebration-gown",
+        "sourcePath": "image assests/gown4.webp",
+        "objectKeyCandidate": "products/occasion/gown4.webp"
+      },
+      {
+        "id": "1f05ee57-3d3d-5aa1-9296-d9034aea6032",
+        "slug": "festive-half-saree",
+        "sourcePath": "image assests/halfsaree2.jpg",
+        "objectKeyCandidate": "products/sarees/halfsaree2.jpg"
+      },
+      {
+        "id": "5e69c2eb-7c13-5c4f-9610-bf09ab161c44",
+        "slug": "mehfil-sharara",
+        "sourcePath": "image assests/sharara2.webp",
+        "objectKeyCandidate": "products/occasion/sharara2.webp"
+      },
+      {
+        "id": "73f323ee-af3d-5bd4-99a7-590637a7eadd",
+        "slug": "gulnaar-sharara-set",
+        "sourcePath": "image assests/sharara3.webp",
+        "objectKeyCandidate": "products/occasion/sharara3.webp"
+      },
+      {
+        "id": "bc177c61-7ab7-5714-902d-fc2db74a3f2b",
+        "slug": "the-noor-sharara",
+        "sourcePath": "image assests/sharara4.webp",
+        "objectKeyCandidate": "products/occasion/sharara4.webp"
+      },
+      {
+        "id": "7ceb9dc4-22bb-54ae-aaa9-4dbce977b1a6",
+        "slug": "celebration-in-bloom",
+        "sourcePath": "image assests/sharara5.webp",
+        "objectKeyCandidate": "products/occasion/sharara5.webp"
+      },
+      {
+        "id": "45c00f10-6233-54a6-a973-6ab3f5b5aa79",
+        "slug": "soft-gold-gown",
+        "sourcePath": "image assests/gown3.webp",
+        "objectKeyCandidate": "products/occasion/gown3.webp"
+      },
+      {
+        "id": "f31cbd8c-e111-5e42-bca3-7c07af15e407",
+        "slug": "the-saanvi-gown",
+        "sourcePath": "image assests/gown6.webp",
+        "objectKeyCandidate": "products/occasion/gown6.webp"
+      },
+      {
+        "id": "9c0458e2-11af-5f36-a21b-ec25d0f5b4d6",
+        "slug": "phool-half-saree",
+        "sourcePath": "image assests/halfsaree1.jpg",
+        "objectKeyCandidate": "products/sarees/halfsaree1.jpg"
+      },
+      {
+        "id": "c2c56f9c-f91f-5fb2-891b-1bc0c1410e68",
+        "slug": "madhuri-half-saree",
+        "sourcePath": "image assests/halfsaree3.jpg",
+        "objectKeyCandidate": "products/sarees/halfsaree3.jpg"
+      },
+      {
+        "id": "3d41e0cf-b872-5550-ab97-be3cf8804d16",
+        "slug": "the-lilac-half-saree",
+        "sourcePath": "image assests/halfsaree4.jpg",
+        "objectKeyCandidate": "products/sarees/halfsaree4.jpg"
+      },
+      {
+        "id": "f986dcfb-fb2c-52b2-a8e5-06221455f4bc",
+        "slug": "sundari-half-saree",
+        "sourcePath": "image assests/halfsaree5.jpg",
+        "objectKeyCandidate": "products/sarees/halfsaree5.jpg"
+      },
+      {
+        "id": "5185a925-24be-5e5f-bb96-ca71a5ba6602",
+        "slug": "modern-bandhgala",
+        "sourcePath": "image assests/menblazer2.jpg",
+        "objectKeyCandidate": "products/menswear/menblazer2.jpg"
+      },
+      {
+        "id": "140362c5-05cf-50a5-8a33-82705b4f9081",
+        "slug": "the-ivory-bandhgala",
+        "sourcePath": "image assests/menblazer1.jpg",
+        "objectKeyCandidate": "products/menswear/menblazer1.jpg"
+      },
+      {
+        "id": "2609e4b5-7a6e-53d1-a344-c6d9c12666c6",
+        "slug": "aramya-evening-blazer",
+        "sourcePath": "image assests/menblazer3.jpg",
+        "objectKeyCandidate": "products/menswear/menblazer3.jpg"
+      },
+      {
+        "id": "0cd2d74c-d964-55aa-a5f4-3bda2190f329",
+        "slug": "the-saffron-blazer",
+        "sourcePath": "image assests/menblazer4.jpg",
+        "objectKeyCandidate": "products/menswear/menblazer4.jpg"
+      },
+      {
+        "id": "fbe9c864-2dbc-5e0d-b3e7-dba937982e13",
+        "slug": "classic-celebration-blazer",
+        "sourcePath": "image assests/menblazer5.jpg",
+        "objectKeyCandidate": "products/menswear/menblazer5.jpg"
+      },
+      {
+        "id": "349fcbb4-47eb-5ca5-b24d-adb35187ac2e",
+        "slug": "the-aramya-kurtha",
+        "sourcePath": "image assests/menkurtha3.jpg",
+        "objectKeyCandidate": "products/menswear/menkurtha3.jpg"
+      },
+      {
+        "id": "39fa1e51-0100-5918-891b-4c2f039b4b57",
+        "slug": "the-festive-kurtha",
+        "sourcePath": "image assests/menkurtha1.jpg",
+        "objectKeyCandidate": "products/menswear/menkurtha1.jpg"
+      },
+      {
+        "id": "648d7d16-cdb4-531a-87e6-4273c2d168f0",
+        "slug": "ivory-occasion-kurtha",
+        "sourcePath": "image assests/menkurtha2.jpg",
+        "objectKeyCandidate": "products/menswear/menkurtha2.jpg"
+      },
+      {
+        "id": "7e7a16c1-bdc5-5963-89be-388505e07cf1",
+        "slug": "the-heritage-kurtha",
+        "sourcePath": "image assests/menkurtha4.jpg",
+        "objectKeyCandidate": "products/menswear/menkurtha4.jpg"
+      },
+      {
+        "id": "dee8a150-b746-58a6-9ffe-9f567be07904",
+        "slug": "sage-celebration-kurtha",
+        "sourcePath": "image assests/menkurtha5.jpg",
+        "objectKeyCandidate": "products/menswear/menkurtha5.jpg"
+      },
+      {
+        "id": "86845550-b6af-5a5e-9616-02eb9d7608c9",
+        "slug": "little-celebration",
+        "sourcePath": "image assests/kidzgown2.jpg",
+        "objectKeyCandidate": "products/kids/kidzgown2.jpg"
+      },
+      {
+        "id": "377031e4-7abd-5fb7-8ba7-3201024fd9e8",
+        "slug": "tiny-festive-set",
+        "sourcePath": "image assests/kidzgown4.jpg",
+        "objectKeyCandidate": "products/kids/kidzgown4.jpg"
+      },
+      {
+        "id": "dba06004-886b-5292-b2a0-b58ee839b859",
+        "slug": "little-rose-gown",
+        "sourcePath": "image assests/kidzgown1.jpg",
+        "objectKeyCandidate": "products/kids/kidzgown1.jpg"
+      },
+      {
+        "id": "2735dc2c-1e11-5fc9-b87b-01bbc33ce459",
+        "slug": "a-little-celebration",
+        "sourcePath": "image assests/kidzgown3.jpg",
+        "objectKeyCandidate": "products/kids/kidzgown3.jpg"
+      },
+      {
+        "id": "1c78bbaf-0fac-58ba-931f-4adac62da0c3",
+        "slug": "tiny-twirl-gown",
+        "sourcePath": "image assests/kidzgown5.jpg",
+        "objectKeyCandidate": "products/kids/kidzgown5.jpg"
+      }
+    ]
+  },
+  "uploadCandidates": [
+    {
+      "sha256": "71a2a29262f820d1e9c48a0fb62ff24ca967c89cdf2bd9253c8a89692cdc4b20",
+      "byteSize": 4270,
+      "mimeType": "image/png",
+      "canonicalSource": "frontend/public/pwa/aramya-192.png",
+      "objectKeyCandidate": "brand/aramya-192.png",
+      "duplicatePaths": [
+        "mobile/assets/images/aramya-192.png"
+      ]
+    },
+    {
+      "sha256": "fcb8b41b9e43a839a7306a4d380d96316adab049070a23c51b88aa2ec62376a2",
+      "byteSize": 13174,
+      "mimeType": "image/png",
+      "canonicalSource": "frontend/public/pwa/aramya-512.png",
+      "objectKeyCandidate": "brand/aramya-512.png",
+      "duplicatePaths": [
+        "mobile/assets/images/aramya-512.png"
+      ]
+    },
+    {
+      "sha256": "12090f488e5538c95fbf3b36ebb3c836938ee0f36e3f41d2ce71d4fba30a4003",
+      "byteSize": 303,
+      "mimeType": "image/svg+xml",
+      "canonicalSource": "frontend/public/pwa/aramya-mark.svg",
+      "objectKeyCandidate": "brand/aramya-mark.svg",
+      "duplicatePaths": []
+    },
+    {
+      "sha256": "c6f2eabc4c2b290f7602286d4dfe7b5c4a81edc0c15c45a6b5e8207eacacf7db",
+      "byteSize": 599591,
+      "mimeType": "image/jpeg",
+      "canonicalSource": "image assests/bridal lehanga.jpg",
+      "objectKeyCandidate": "products/bridal/bridal-lehanga.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/bridal lehanga.jpg"
+      ]
+    },
+    {
+      "sha256": "d5e0f81b68d144fbb1f08d005d646000c61d406caa19bc3a7f0042ee45a25471",
+      "byteSize": 836302,
+      "mimeType": "video/mp4",
+      "canonicalSource": "image assests/campaign-loop.mp4",
+      "objectKeyCandidate": "collections/campaign-loop.mp4",
+      "duplicatePaths": []
+    },
+    {
+      "sha256": "52d9f5aee7c0bac2a1d35f28c5abab92a3e2fecf6d4d330feaa0046579af8e9d",
+      "byteSize": 168170,
+      "mimeType": "image/webp",
+      "canonicalSource": "image assests/gown1.webp",
+      "objectKeyCandidate": "products/occasion/gown1.webp",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/gown1.webp"
+      ]
+    },
+    {
+      "sha256": "b4e21816c526cfcdfd46346d08a6b5a1d600a6b5bfe45d9390891cb5ea3c62b0",
+      "byteSize": 113360,
+      "mimeType": "image/webp",
+      "canonicalSource": "image assests/gown2.webp",
+      "objectKeyCandidate": "products/occasion/gown2.webp",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/gown2.webp"
+      ]
+    },
+    {
+      "sha256": "6e2d75fb110ebf3359f97b438eecbcbe437977e91daa48e96ac0ac67d6121dae",
+      "byteSize": 163582,
+      "mimeType": "image/webp",
+      "canonicalSource": "image assests/gown3.webp",
+      "objectKeyCandidate": "products/occasion/gown3.webp",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/gown3.webp"
+      ]
+    },
+    {
+      "sha256": "6606be79b48dbbddfdf777fa7601790dbe891fa852307ea31131c9affb577473",
+      "byteSize": 436116,
+      "mimeType": "image/webp",
+      "canonicalSource": "image assests/gown4.webp",
+      "objectKeyCandidate": "products/occasion/gown4.webp",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/gown4.webp"
+      ]
+    },
+    {
+      "sha256": "b28bd723d9dd8e6ea6cbd800cddb0d8f39daa0aa024e96c28089770a459f20dc",
+      "byteSize": 112436,
+      "mimeType": "image/webp",
+      "canonicalSource": "image assests/gown6.webp",
+      "objectKeyCandidate": "products/occasion/gown6.webp",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/gown6.webp"
+      ]
+    },
+    {
+      "sha256": "7a3cb951d83090c8cf6b4e9ece9df1895c1a9d3041223dddaf6af5638249bb2b",
+      "byteSize": 41948,
+      "mimeType": "image/jpeg",
+      "canonicalSource": "image assests/halfsaree1.jpg",
+      "objectKeyCandidate": "products/sarees/halfsaree1.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/halfsaree1.jpg"
+      ]
+    },
+    {
+      "sha256": "5ab06778702c9fb7eda6030b91457bd5296db0834beb0132ff6f192b3fe6f0a2",
+      "byteSize": 39085,
+      "mimeType": "image/jpeg",
+      "canonicalSource": "image assests/halfsaree2.jpg",
+      "objectKeyCandidate": "products/sarees/halfsaree2.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/halfsaree2.jpg"
+      ]
+    },
+    {
+      "sha256": "7492fafe518ee6eae29524d6b17327931668a32d78b0194e90d07e1fe447791e",
+      "byteSize": 49495,
+      "mimeType": "image/jpeg",
+      "canonicalSource": "image assests/halfsaree3.jpg",
+      "objectKeyCandidate": "products/sarees/halfsaree3.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/halfsaree3.jpg"
+      ]
+    },
+    {
+      "sha256": "d537411955886a5724a22890a03372df4acc9613a328e2d331faacafc6c000ec",
+      "byteSize": 42365,
+      "mimeType": "image/jpeg",
+      "canonicalSource": "image assests/halfsaree4.jpg",
+      "objectKeyCandidate": "products/sarees/halfsaree4.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/halfsaree4.jpg"
+      ]
+    },
+    {
+      "sha256": "d8d30c9d2e178a9f9cd09ac9df6b85600c9b847cf871fb670c0ce970789c3f21",
+      "byteSize": 40607,
+      "mimeType": "image/jpeg",
+      "canonicalSource": "image assests/halfsaree5.jpg",
+      "objectKeyCandidate": "products/sarees/halfsaree5.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/halfsaree5.jpg"
+      ]
+    },
+    {
+      "sha256": "d62a814dbaeb8c1d3d4a09ee0b4fbcc4d42413e4e973e27813fec0c52fef43dc",
+      "byteSize": 6187,
+      "mimeType": "image/jpeg",
+      "canonicalSource": "image assests/kidzgown1.jpg",
+      "objectKeyCandidate": "products/kids/kidzgown1.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/kidzgown1.jpg"
+      ]
+    },
+    {
+      "sha256": "548ee2094781c50b36ff279fbf992524b13576130050f4364427fd37b8e40299",
+      "byteSize": 20469,
+      "mimeType": "image/jpeg",
+      "canonicalSource": "image assests/kidzgown2.jpg",
+      "objectKeyCandidate": "products/kids/kidzgown2.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/kidzgown2.jpg"
+      ]
+    },
+    {
+      "sha256": "7907498ae69bd13e3bf56bc95695a31dcc0e556718f362451181b5b0bb2bc92c",
+      "byteSize": 27039,
+      "mimeType": "image/jpeg",
+      "canonicalSource": "image assests/kidzgown3.jpg",
+      "objectKeyCandidate": "products/kids/kidzgown3.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/kidzgown3.jpg"
+      ]
+    },
+    {
+      "sha256": "8a5d83ff0a71000706ac89028bca29f4c18f6c6fe57519b337a00c095385e39a",
+      "byteSize": 28243,
+      "mimeType": "image/jpeg",
+      "canonicalSource": "image assests/kidzgown4.jpg",
+      "objectKeyCandidate": "products/kids/kidzgown4.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/kidzgown4.jpg"
+      ]
+    },
+    {
+      "sha256": "089029983ff18f290f2160e7dbb68667245077794a01c9b05d3a201ed467c95d",
+      "byteSize": 27150,
+      "mimeType": "image/jpeg",
+      "canonicalSource": "image assests/kidzgown5.jpg",
+      "objectKeyCandidate": "products/kids/kidzgown5.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/kidzgown5.jpg"
+      ]
+    },
+    {
+      "sha256": "c87d90d99d4d2bd8903774ea148bdcd74a1ee20a7abc6f9ca8e361c95e9ca3ed",
+      "byteSize": 32948,
+      "mimeType": "image/jpeg",
+      "canonicalSource": "image assests/lehanga1.jpg",
+      "objectKeyCandidate": "products/bridal/lehanga1.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/lehanga1.jpg"
+      ]
+    },
+    {
+      "sha256": "6e05c7be036aea7a9a61507e4ba6828e7b9e6137078276170734fd7ac6472213",
+      "byteSize": 31266,
+      "mimeType": "image/jpeg",
+      "canonicalSource": "image assests/lehanga2.jpg",
+      "objectKeyCandidate": "products/bridal/lehanga2.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/lehanga2.jpg"
+      ]
+    },
+    {
+      "sha256": "37906e6aaa3e40540120d477d8a092a61199ff2b8c5849df3498f2a26ae9ab74",
+      "byteSize": 22722,
+      "mimeType": "image/jpeg",
+      "canonicalSource": "image assests/lehanga3.jpg",
+      "objectKeyCandidate": "products/bridal/lehanga3.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/lehanga3.jpg"
+      ]
+    },
+    {
+      "sha256": "d1b32becaffc60a6d7ca36903f5f10921247338464d78be8532d7b663ee39fe6",
+      "byteSize": 50112,
+      "mimeType": "image/jpeg",
+      "canonicalSource": "image assests/lehanga4.jpg",
+      "objectKeyCandidate": "products/bridal/lehanga4.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/lehanga4.jpg"
+      ]
+    },
+    {
+      "sha256": "e69d905ec437aeabcdead3c02a77d87fac906642486828e27416351aeafa6779",
+      "byteSize": 38299,
+      "mimeType": "image/jpeg",
+      "canonicalSource": "image assests/lehanga5.jpg",
+      "objectKeyCandidate": "products/bridal/lehanga5.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/lehanga5.jpg"
+      ]
+    },
+    {
+      "sha256": "9822099f203e56ade4756cfc116df3ae08e2ee87dfcc8011c10553d00eb18c4a",
+      "byteSize": 417402,
+      "mimeType": "image/png",
+      "canonicalSource": "image assests/logo.png",
+      "objectKeyCandidate": "brand/logo.png",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/logo.png"
+      ]
+    },
+    {
+      "sha256": "1e44bfa736ac4bf8f3c007a003471e86ee83575e9d46717f4c0ac6835f82c2eb",
+      "byteSize": 17995,
+      "mimeType": "image/jpeg",
+      "canonicalSource": "image assests/menblazer1.jpg",
+      "objectKeyCandidate": "products/menswear/menblazer1.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/menblazer1.jpg"
+      ]
+    },
+    {
+      "sha256": "e7a49efc71556cbef3e6ae21db3fc030ab333b0e63bbb7e3e7ba7cf2f604482b",
+      "byteSize": 33502,
+      "mimeType": "image/jpeg",
+      "canonicalSource": "image assests/menblazer2.jpg",
+      "objectKeyCandidate": "products/menswear/menblazer2.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/menblazer2.jpg"
+      ]
+    },
+    {
+      "sha256": "a79072d63f085a39638ae2bf0d12e06cb0cba37abe38fbb25be4335c050e5da2",
+      "byteSize": 12246,
+      "mimeType": "image/jpeg",
+      "canonicalSource": "image assests/menblazer3.jpg",
+      "objectKeyCandidate": "products/menswear/menblazer3.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/menblazer3.jpg"
+      ]
+    },
+    {
+      "sha256": "d91dcd7a442a3a4ea0f585c5332984b0f73625ac261f80f27c89cfd9e5fe5c8f",
+      "byteSize": 27986,
+      "mimeType": "image/jpeg",
+      "canonicalSource": "image assests/menblazer4.jpg",
+      "objectKeyCandidate": "products/menswear/menblazer4.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/menblazer4.jpg"
+      ]
+    },
+    {
+      "sha256": "4efc4cc0d4ca1d4560a2a461de4694d7982ed262a1edb98c942a773230af8149",
+      "byteSize": 15349,
+      "mimeType": "image/jpeg",
+      "canonicalSource": "image assests/menblazer5.jpg",
+      "objectKeyCandidate": "products/menswear/menblazer5.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/menblazer5.jpg"
+      ]
+    },
+    {
+      "sha256": "f2e225393e7ff7adfaaaa03f296fb66c2cc602ec8a46a4088fcc488d2e098cfe",
+      "byteSize": 17511,
+      "mimeType": "image/jpeg",
+      "canonicalSource": "image assests/menkurtha1.jpg",
+      "objectKeyCandidate": "products/menswear/menkurtha1.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/menkurtha1.jpg"
+      ]
+    },
+    {
+      "sha256": "42e770cb34b5d097b79abc6ff34702c87485d419496662af977e322f559f7c40",
+      "byteSize": 21960,
+      "mimeType": "image/jpeg",
+      "canonicalSource": "image assests/menkurtha2.jpg",
+      "objectKeyCandidate": "products/menswear/menkurtha2.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/menkurtha2.jpg"
+      ]
+    },
+    {
+      "sha256": "38595144946c5a4b70a8e743904d949ad426459815fb72e71834e21310fecaf2",
+      "byteSize": 42274,
+      "mimeType": "image/jpeg",
+      "canonicalSource": "image assests/menkurtha3.jpg",
+      "objectKeyCandidate": "products/menswear/menkurtha3.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/menkurtha3.jpg"
+      ]
+    },
+    {
+      "sha256": "2b3aad0031e6ca1bfa5a7be7ab6e8e78e502eb4a66d1e405eadc124294d5f948",
+      "byteSize": 13182,
+      "mimeType": "image/jpeg",
+      "canonicalSource": "image assests/menkurtha4.jpg",
+      "objectKeyCandidate": "products/menswear/menkurtha4.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/menkurtha4.jpg"
+      ]
+    },
+    {
+      "sha256": "804876eb1d04775c03cf13e34f8808d41784547717d9a387a3a596015fb5dd3a",
+      "byteSize": 23591,
+      "mimeType": "image/jpeg",
+      "canonicalSource": "image assests/menkurtha5.jpg",
+      "objectKeyCandidate": "products/menswear/menkurtha5.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/menkurtha5.jpg"
+      ]
+    },
+    {
+      "sha256": "34c2332843bf1bec6a6ed678d34f0543a71036e762ee2d8401967fa96fc2bef3",
+      "byteSize": 32580,
+      "mimeType": "image/jpeg",
+      "canonicalSource": "image assests/saree1.jpg",
+      "objectKeyCandidate": "products/sarees/saree1.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/saree1.jpg"
+      ]
+    },
+    {
+      "sha256": "dfedd4cb41e440b1169d6c0649738ab9b43c090141acbe82d73e7113cf363d9e",
+      "byteSize": 54295,
+      "mimeType": "image/jpeg",
+      "canonicalSource": "image assests/saree2.jpg",
+      "objectKeyCandidate": "products/sarees/saree2.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/saree2.jpg"
+      ]
+    },
+    {
+      "sha256": "95f15a27e8ec35414a149e1d2f4850bbd7fa4b32cfa61217a664673cfd8f4136",
+      "byteSize": 26434,
+      "mimeType": "image/jpeg",
+      "canonicalSource": "image assests/saree3.jpg",
+      "objectKeyCandidate": "products/sarees/saree3.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/saree3.jpg"
+      ]
+    },
+    {
+      "sha256": "5c854e91f45fee58ab22d4c41d045f0e3378aa166209603360086733a140c349",
+      "byteSize": 42338,
+      "mimeType": "image/jpeg",
+      "canonicalSource": "image assests/saree4.jpg",
+      "objectKeyCandidate": "products/sarees/saree4.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/saree4.jpg"
+      ]
+    },
+    {
+      "sha256": "b354dc019cc972925a411153fa263a1d00aba427e0348c2c1b944b1f2c200d2a",
+      "byteSize": 56001,
+      "mimeType": "image/jpeg",
+      "canonicalSource": "image assests/saree5.jpg",
+      "objectKeyCandidate": "products/sarees/saree5.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/saree5.jpg"
+      ]
+    },
+    {
+      "sha256": "10e0ea0a4309b2f7b4586f2b68c9d87b14132c448cf9367b64bf611504f516f8",
+      "byteSize": 189698,
+      "mimeType": "image/avif",
+      "canonicalSource": "image assests/sharara1.avif",
+      "objectKeyCandidate": "products/occasion/sharara1.avif",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/sharara1.avif"
+      ]
+    },
+    {
+      "sha256": "9577c82b7924f7f921b891e612c599288aecac00ff4d1eff612ec245976fb4e8",
+      "byteSize": 118778,
+      "mimeType": "image/webp",
+      "canonicalSource": "image assests/sharara2.webp",
+      "objectKeyCandidate": "products/occasion/sharara2.webp",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/sharara2.webp"
+      ]
+    },
+    {
+      "sha256": "649c91da671ec10fc6a14173949b04aa770ed3e88f2352666bbb5e58b4d76419",
+      "byteSize": 153428,
+      "mimeType": "image/webp",
+      "canonicalSource": "image assests/sharara3.webp",
+      "objectKeyCandidate": "products/occasion/sharara3.webp",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/sharara3.webp"
+      ]
+    },
+    {
+      "sha256": "8983a50933d83bf383cbbde20bbe563403170beb06342db2a1beeea868639231",
+      "byteSize": 152470,
+      "mimeType": "image/webp",
+      "canonicalSource": "image assests/sharara4.webp",
+      "objectKeyCandidate": "products/occasion/sharara4.webp",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/sharara4.webp"
+      ]
+    },
+    {
+      "sha256": "a4c8c2523d58e3b6e52c83f4bc13a839d23d116971f67770f712f4864aada2ab",
+      "byteSize": 189612,
+      "mimeType": "image/webp",
+      "canonicalSource": "image assests/sharara5.webp",
+      "objectKeyCandidate": "products/occasion/sharara5.webp",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/sharara5.webp"
+      ]
+    }
+  ],
+  "duplicateGroups": [
+    {
+      "sha256": "71a2a29262f820d1e9c48a0fb62ff24ca967c89cdf2bd9253c8a89692cdc4b20",
+      "byteSize": 4270,
+      "canonicalSource": "frontend/public/pwa/aramya-192.png",
+      "duplicatePaths": [
+        "mobile/assets/images/aramya-192.png"
+      ]
+    },
+    {
+      "sha256": "fcb8b41b9e43a839a7306a4d380d96316adab049070a23c51b88aa2ec62376a2",
+      "byteSize": 13174,
+      "canonicalSource": "frontend/public/pwa/aramya-512.png",
+      "duplicatePaths": [
+        "mobile/assets/images/aramya-512.png"
+      ]
+    },
+    {
+      "sha256": "c6f2eabc4c2b290f7602286d4dfe7b5c4a81edc0c15c45a6b5e8207eacacf7db",
+      "byteSize": 599591,
+      "canonicalSource": "image assests/bridal lehanga.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/bridal lehanga.jpg"
+      ]
+    },
+    {
+      "sha256": "52d9f5aee7c0bac2a1d35f28c5abab92a3e2fecf6d4d330feaa0046579af8e9d",
+      "byteSize": 168170,
+      "canonicalSource": "image assests/gown1.webp",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/gown1.webp"
+      ]
+    },
+    {
+      "sha256": "b4e21816c526cfcdfd46346d08a6b5a1d600a6b5bfe45d9390891cb5ea3c62b0",
+      "byteSize": 113360,
+      "canonicalSource": "image assests/gown2.webp",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/gown2.webp"
+      ]
+    },
+    {
+      "sha256": "6e2d75fb110ebf3359f97b438eecbcbe437977e91daa48e96ac0ac67d6121dae",
+      "byteSize": 163582,
+      "canonicalSource": "image assests/gown3.webp",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/gown3.webp"
+      ]
+    },
+    {
+      "sha256": "6606be79b48dbbddfdf777fa7601790dbe891fa852307ea31131c9affb577473",
+      "byteSize": 436116,
+      "canonicalSource": "image assests/gown4.webp",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/gown4.webp"
+      ]
+    },
+    {
+      "sha256": "b28bd723d9dd8e6ea6cbd800cddb0d8f39daa0aa024e96c28089770a459f20dc",
+      "byteSize": 112436,
+      "canonicalSource": "image assests/gown6.webp",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/gown6.webp"
+      ]
+    },
+    {
+      "sha256": "7a3cb951d83090c8cf6b4e9ece9df1895c1a9d3041223dddaf6af5638249bb2b",
+      "byteSize": 41948,
+      "canonicalSource": "image assests/halfsaree1.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/halfsaree1.jpg"
+      ]
+    },
+    {
+      "sha256": "5ab06778702c9fb7eda6030b91457bd5296db0834beb0132ff6f192b3fe6f0a2",
+      "byteSize": 39085,
+      "canonicalSource": "image assests/halfsaree2.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/halfsaree2.jpg"
+      ]
+    },
+    {
+      "sha256": "7492fafe518ee6eae29524d6b17327931668a32d78b0194e90d07e1fe447791e",
+      "byteSize": 49495,
+      "canonicalSource": "image assests/halfsaree3.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/halfsaree3.jpg"
+      ]
+    },
+    {
+      "sha256": "d537411955886a5724a22890a03372df4acc9613a328e2d331faacafc6c000ec",
+      "byteSize": 42365,
+      "canonicalSource": "image assests/halfsaree4.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/halfsaree4.jpg"
+      ]
+    },
+    {
+      "sha256": "d8d30c9d2e178a9f9cd09ac9df6b85600c9b847cf871fb670c0ce970789c3f21",
+      "byteSize": 40607,
+      "canonicalSource": "image assests/halfsaree5.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/halfsaree5.jpg"
+      ]
+    },
+    {
+      "sha256": "d62a814dbaeb8c1d3d4a09ee0b4fbcc4d42413e4e973e27813fec0c52fef43dc",
+      "byteSize": 6187,
+      "canonicalSource": "image assests/kidzgown1.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/kidzgown1.jpg"
+      ]
+    },
+    {
+      "sha256": "548ee2094781c50b36ff279fbf992524b13576130050f4364427fd37b8e40299",
+      "byteSize": 20469,
+      "canonicalSource": "image assests/kidzgown2.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/kidzgown2.jpg"
+      ]
+    },
+    {
+      "sha256": "7907498ae69bd13e3bf56bc95695a31dcc0e556718f362451181b5b0bb2bc92c",
+      "byteSize": 27039,
+      "canonicalSource": "image assests/kidzgown3.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/kidzgown3.jpg"
+      ]
+    },
+    {
+      "sha256": "8a5d83ff0a71000706ac89028bca29f4c18f6c6fe57519b337a00c095385e39a",
+      "byteSize": 28243,
+      "canonicalSource": "image assests/kidzgown4.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/kidzgown4.jpg"
+      ]
+    },
+    {
+      "sha256": "089029983ff18f290f2160e7dbb68667245077794a01c9b05d3a201ed467c95d",
+      "byteSize": 27150,
+      "canonicalSource": "image assests/kidzgown5.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/kidzgown5.jpg"
+      ]
+    },
+    {
+      "sha256": "c87d90d99d4d2bd8903774ea148bdcd74a1ee20a7abc6f9ca8e361c95e9ca3ed",
+      "byteSize": 32948,
+      "canonicalSource": "image assests/lehanga1.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/lehanga1.jpg"
+      ]
+    },
+    {
+      "sha256": "6e05c7be036aea7a9a61507e4ba6828e7b9e6137078276170734fd7ac6472213",
+      "byteSize": 31266,
+      "canonicalSource": "image assests/lehanga2.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/lehanga2.jpg"
+      ]
+    },
+    {
+      "sha256": "37906e6aaa3e40540120d477d8a092a61199ff2b8c5849df3498f2a26ae9ab74",
+      "byteSize": 22722,
+      "canonicalSource": "image assests/lehanga3.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/lehanga3.jpg"
+      ]
+    },
+    {
+      "sha256": "d1b32becaffc60a6d7ca36903f5f10921247338464d78be8532d7b663ee39fe6",
+      "byteSize": 50112,
+      "canonicalSource": "image assests/lehanga4.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/lehanga4.jpg"
+      ]
+    },
+    {
+      "sha256": "e69d905ec437aeabcdead3c02a77d87fac906642486828e27416351aeafa6779",
+      "byteSize": 38299,
+      "canonicalSource": "image assests/lehanga5.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/lehanga5.jpg"
+      ]
+    },
+    {
+      "sha256": "9822099f203e56ade4756cfc116df3ae08e2ee87dfcc8011c10553d00eb18c4a",
+      "byteSize": 417402,
+      "canonicalSource": "image assests/logo.png",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/logo.png"
+      ]
+    },
+    {
+      "sha256": "1e44bfa736ac4bf8f3c007a003471e86ee83575e9d46717f4c0ac6835f82c2eb",
+      "byteSize": 17995,
+      "canonicalSource": "image assests/menblazer1.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/menblazer1.jpg"
+      ]
+    },
+    {
+      "sha256": "e7a49efc71556cbef3e6ae21db3fc030ab333b0e63bbb7e3e7ba7cf2f604482b",
+      "byteSize": 33502,
+      "canonicalSource": "image assests/menblazer2.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/menblazer2.jpg"
+      ]
+    },
+    {
+      "sha256": "a79072d63f085a39638ae2bf0d12e06cb0cba37abe38fbb25be4335c050e5da2",
+      "byteSize": 12246,
+      "canonicalSource": "image assests/menblazer3.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/menblazer3.jpg"
+      ]
+    },
+    {
+      "sha256": "d91dcd7a442a3a4ea0f585c5332984b0f73625ac261f80f27c89cfd9e5fe5c8f",
+      "byteSize": 27986,
+      "canonicalSource": "image assests/menblazer4.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/menblazer4.jpg"
+      ]
+    },
+    {
+      "sha256": "4efc4cc0d4ca1d4560a2a461de4694d7982ed262a1edb98c942a773230af8149",
+      "byteSize": 15349,
+      "canonicalSource": "image assests/menblazer5.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/menblazer5.jpg"
+      ]
+    },
+    {
+      "sha256": "f2e225393e7ff7adfaaaa03f296fb66c2cc602ec8a46a4088fcc488d2e098cfe",
+      "byteSize": 17511,
+      "canonicalSource": "image assests/menkurtha1.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/menkurtha1.jpg"
+      ]
+    },
+    {
+      "sha256": "42e770cb34b5d097b79abc6ff34702c87485d419496662af977e322f559f7c40",
+      "byteSize": 21960,
+      "canonicalSource": "image assests/menkurtha2.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/menkurtha2.jpg"
+      ]
+    },
+    {
+      "sha256": "38595144946c5a4b70a8e743904d949ad426459815fb72e71834e21310fecaf2",
+      "byteSize": 42274,
+      "canonicalSource": "image assests/menkurtha3.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/menkurtha3.jpg"
+      ]
+    },
+    {
+      "sha256": "2b3aad0031e6ca1bfa5a7be7ab6e8e78e502eb4a66d1e405eadc124294d5f948",
+      "byteSize": 13182,
+      "canonicalSource": "image assests/menkurtha4.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/menkurtha4.jpg"
+      ]
+    },
+    {
+      "sha256": "804876eb1d04775c03cf13e34f8808d41784547717d9a387a3a596015fb5dd3a",
+      "byteSize": 23591,
+      "canonicalSource": "image assests/menkurtha5.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/menkurtha5.jpg"
+      ]
+    },
+    {
+      "sha256": "34c2332843bf1bec6a6ed678d34f0543a71036e762ee2d8401967fa96fc2bef3",
+      "byteSize": 32580,
+      "canonicalSource": "image assests/saree1.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/saree1.jpg"
+      ]
+    },
+    {
+      "sha256": "dfedd4cb41e440b1169d6c0649738ab9b43c090141acbe82d73e7113cf363d9e",
+      "byteSize": 54295,
+      "canonicalSource": "image assests/saree2.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/saree2.jpg"
+      ]
+    },
+    {
+      "sha256": "95f15a27e8ec35414a149e1d2f4850bbd7fa4b32cfa61217a664673cfd8f4136",
+      "byteSize": 26434,
+      "canonicalSource": "image assests/saree3.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/saree3.jpg"
+      ]
+    },
+    {
+      "sha256": "5c854e91f45fee58ab22d4c41d045f0e3378aa166209603360086733a140c349",
+      "byteSize": 42338,
+      "canonicalSource": "image assests/saree4.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/saree4.jpg"
+      ]
+    },
+    {
+      "sha256": "b354dc019cc972925a411153fa263a1d00aba427e0348c2c1b944b1f2c200d2a",
+      "byteSize": 56001,
+      "canonicalSource": "image assests/saree5.jpg",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/saree5.jpg"
+      ]
+    },
+    {
+      "sha256": "10e0ea0a4309b2f7b4586f2b68c9d87b14132c448cf9367b64bf611504f516f8",
+      "byteSize": 189698,
+      "canonicalSource": "image assests/sharara1.avif",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/sharara1.avif"
+      ]
+    },
+    {
+      "sha256": "9577c82b7924f7f921b891e612c599288aecac00ff4d1eff612ec245976fb4e8",
+      "byteSize": 118778,
+      "canonicalSource": "image assests/sharara2.webp",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/sharara2.webp"
+      ]
+    },
+    {
+      "sha256": "649c91da671ec10fc6a14173949b04aa770ed3e88f2352666bbb5e58b4d76419",
+      "byteSize": 153428,
+      "canonicalSource": "image assests/sharara3.webp",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/sharara3.webp"
+      ]
+    },
+    {
+      "sha256": "8983a50933d83bf383cbbde20bbe563403170beb06342db2a1beeea868639231",
+      "byteSize": 152470,
+      "canonicalSource": "image assests/sharara4.webp",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/sharara4.webp"
+      ]
+    },
+    {
+      "sha256": "a4c8c2523d58e3b6e52c83f4bc13a839d23d116971f67770f712f4864aada2ab",
+      "byteSize": 189612,
+      "canonicalSource": "image assests/sharara5.webp",
+      "duplicatePaths": [
+        "legacy-storefront/dist/image assests/sharara5.webp"
+      ]
+    }
+  ]
+}
