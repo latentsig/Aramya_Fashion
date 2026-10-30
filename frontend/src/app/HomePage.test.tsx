@@ -9,8 +9,8 @@ describe('home page', () => {
 
     expect(screen.getByRole('heading', { name: /wear the moment/i })).toBeTruthy();
     expect(screen.getByRole('heading', { name: /find your occasion/i })).toBeTruthy();
-    expect(document.querySelector('video.hero-video source')?.getAttribute('src')).toBe('https://videos.pexels.com/video-files/7684805/7684805-hd_1920_1080_30fps.mp4');
-    expect(document.querySelector('video.hero-video')?.getAttribute('poster')).toBe('/media/lehanga2.jpg');
+    expect(document.querySelector('video.hero-video source')?.getAttribute('src')).toBe('https://cdn.pixabay.com/video/2022/10/22/136039-764371293_large.mp4');
+    expect(document.querySelector('video.hero-video')?.getAttribute('poster')).toBe('/media/saree1.jpg');
     expect(screen.getByAltText('Full-length red bridal lehenga with detailed embroidery').getAttribute('src')).toBe('/media/bridal%20lehanga.jpg');
     expect(screen.getByRole('link', { name: /sarees a drape for every celebration/i })).toBeTruthy();
     expect(screen.getByRole('link', { name: /bridal & lehengas for the day you will always remember/i })).toBeTruthy();

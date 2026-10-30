@@ -13,10 +13,12 @@ import { AdminStudioPage } from '../features/admin/AdminStudioPage';
 import { AdminInventoryPage } from '../features/admin/AdminInventoryPage';
 import { AdminCategoriesPage, AdminProductsPage } from '../features/admin/AdminCatalogPages';
 import { AdminOrdersPage } from '../features/admin/AdminOrdersPage';
+import { PwaExperience } from '../components/layout/PwaExperience';
 
 export default function App() {
   return (
     <>
+      <PwaExperience />
       <div className="announcement">Made for your moments. Crafted to be yours. <a href="#appointment">Book a studio appointment <span aria-hidden="true">↗</span></a></div>
       <SiteHeader />
       <Routes>

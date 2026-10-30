@@ -7,6 +7,7 @@ import { CartProvider } from './features/cart/CartContext';
 import { AuthProvider } from './features/auth/AuthContext';
 import './styles/tokens.css';
 import './styles/hero-video.css';
+import './styles/pwa.css';
 import './features/products/catalog.css';
 import './features/products/product-detail.css';
 import './features/auth/auth.css';
