@@ -20,6 +20,7 @@ var (
 	ErrEmptyCart               = errors.New("cart is empty")
 	ErrInvalidCheckout         = errors.New("checkout details are invalid")
 	ErrInsufficientStock       = errors.New("requested quantity is no longer available")
+	ErrInventoryReservation    = errors.New("inventory reservation failed")
 	ErrIdempotencyConflict     = errors.New("idempotency key was already used for different checkout details")
 	ErrInvalidReservationBatch = errors.New("reservation cleanup batch size is invalid")
 )
@@ -56,16 +57,19 @@ type Quote struct {
 }
 
 type Order struct {
-	ID            string `json:"id"`
-	OrderNumber   string `json:"orderNumber"`
-	Status        string `json:"status"`
-	Currency      string `json:"currency"`
-	SubtotalPaise int64  `json:"subtotalPaise"`
-	TaxPaise      int64  `json:"taxPaise"`
-	ShippingPaise int64  `json:"shippingPaise"`
-	TotalPaise    int64  `json:"totalPaise"`
-	CreatedAt     string `json:"createdAt"`
+	ID                       string `json:"id"`
+	OrderNumber              string `json:"orderNumber"`
+	Status                   string `json:"status"`
+	Currency                 string `json:"currency"`
+	SubtotalPaise            int64  `json:"subtotalPaise"`
+	TaxPaise                 int64  `json:"taxPaise"`
+	ShippingPaise            int64  `json:"shippingPaise"`
+	TotalPaise               int64  `json:"totalPaise"`
+	CreatedAt                string `json:"createdAt"`
+	trackedInventoryReserved bool
 }
+
+func (o Order) HasTrackedInventoryReservation() bool { return o.trackedInventoryReserved }
 
 type lineSnapshot struct {
 	ProductID       string
@@ -194,7 +198,7 @@ func (s *Service) CreateOrder(ctx context.Context, cartID, userID, guestEmail, g
 				if errors.Is(err, pgx.ErrNoRows) {
 					return Order{}, false, ErrInsufficientStock
 				}
-				return Order{}, false, err
+				return Order{}, false, fmt.Errorf("%w: %w", ErrInventoryReservation, err)
 			}
 			if line.Quantity > available {
 				rows.Close()
@@ -251,16 +255,17 @@ func (s *Service) CreateOrder(ctx context.Context, cartID, userID, guestEmail, g
 				if errors.Is(err, pgx.ErrNoRows) {
 					return Order{}, false, ErrInsufficientStock
 				}
-				return Order{}, false, err
+				return Order{}, false, fmt.Errorf("%w: %w", ErrInventoryReservation, err)
 			}
 			if _, err := tx.Exec(dbCtx, `INSERT INTO inventory_reservations(order_item_id,product_variant_id,quantity,status,expires_at)
 				VALUES($1,$2,$3,'active',now()+($4 * interval '1 second'))`, orderItemID, line.VariantID, line.Quantity, int64(ReservationTTL.Seconds())); err != nil {
-				return Order{}, false, err
+				return Order{}, false, fmt.Errorf("%w: %w", ErrInventoryReservation, err)
 			}
 			if _, err := tx.Exec(dbCtx, `INSERT INTO inventory_movements(product_variant_id,movement_type,quantity_delta,quantity_after,reference_type,reference_id,note)
 				VALUES($1,'reservation',$2,$3,'order',$4,'Checkout stock reservation')`, line.VariantID, line.Quantity, onHand, order.ID); err != nil {
-				return Order{}, false, err
+				return Order{}, false, fmt.Errorf("%w: %w", ErrInventoryReservation, err)
 			}
+			order.trackedInventoryReserved = true
 		}
 	}
 	if _, err = tx.Exec(dbCtx, `INSERT INTO order_status_events(order_id,from_status,to_status,reason) VALUES($1,NULL,'pending_payment','Customer submitted checkout details')`, order.ID); err != nil {

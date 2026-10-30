@@ -29,3 +29,12 @@ groups:
         annotations:
           summary: Aramya API p95 latency exceeds 1.5 seconds
           description: Check API saturation and database query behavior.
+
+      - alert: AramyaInventoryReservationFailures
+        expr: sum(increase(aramya_inventory_reservation_attempts_total{outcome="failed"}[5m])) > 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: Tracked inventory reservations are failing
+          description: Check checkout transaction failures and inventory rows; do not adjust stock counters manually without reconciling reservations and ledger entries.

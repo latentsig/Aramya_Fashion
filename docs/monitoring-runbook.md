@@ -17,9 +17,10 @@ If Docker is unavailable, scrape `http://localhost:18080/metrics` with an Author
 - `aramya_http_requests_total{method,route,status}` and `aramya_http_request_duration_seconds{method,route}` record all API traffic using Gin route templates, never raw paths.
 - `aramya_database_ready` is updated on each `/ready` database ping.
 - `aramya_order_creation_attempts_total{outcome}` records order creations, idempotent replays, business rejections, and server failures.
+- `aramya_inventory_reservation_attempts_total{outcome}` records tracked-stock reservations as `reserved`, stock rejections as `rejected`, and reservation database/ledger failures as `failed`. Outcomes are fixed labels; IDs and SQL error text are never labels. A failure alert is provisioned in `infrastructure/monitoring/alerts.yml`.
 - Go runtime metrics are also available from the process collector.
 
-Payment/webhook, R2, inventory-reservation, and database slow-query metrics are not emitted yet because those corresponding instrumented operations are not implemented. Add counters/timers alongside those real operations when those milestones are built; do not infer success from request counts.
+Payment/webhook, R2, and database slow-query metrics are not emitted yet because those corresponding instrumented operations are not implemented. Add counters/timers alongside those real operations when those milestones are built; do not infer success from request counts.
 
 ## Alert triage
 

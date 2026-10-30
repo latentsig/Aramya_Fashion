@@ -176,3 +176,10 @@ This report tracks verified milestones and does not claim full e-commerce accept
 - Added required contact/name validation, server-compatible field limits, progress/error/success feedback, and accessible native input labels and tab states. Custom-garment requests remain quotation inquiries and cannot trigger payment.
 - `npm run lint` passed and `npx tsc --noEmit` passed in `mobile/`. `npx expo export --platform android --output-dir ..\.tmp-mobile-export-check` passed; Metro bundled 1,348 modules and generated an Android Hermes bundle. Temporary export output was removed after verification.
 - Android SDK/emulator and actual API-backed device submission remain unverified; bundle export is not an APK or device test.
+
+## Inventory reservation monitoring — instrumented and unit verified
+
+- Added `aramya_inventory_reservation_attempts_total{outcome}` for real tracked-stock checkout reservations, rejected insufficient-stock requests, and reservation persistence failures. Outcomes use a fixed allowlist and never include variant IDs, customer data, SQL text, or other request content.
+- Added an alert rule for reservation persistence failures and a Grafana dashboard panel showing outcome counts over time. The monitoring runbook documents triage.
+- `go test -count=1 ./...` and `go vet ./...` passed. A scrape-level unit test verifies all three samples and confirms an arbitrary identifier is not exposed as a label.
+- The Prometheus/Grafana local stack was not started; no external monitoring account or alert receiver was configured.

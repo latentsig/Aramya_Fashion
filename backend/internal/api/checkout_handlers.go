@@ -51,6 +51,16 @@ func registerCheckoutRoutes(v1 *gin.RouterGroup, service *checkout.Service, cart
 		}
 		order, replayed, err := service.CreateOrder(c.Request.Context(), cartID, userID, details.Email, details.Phone, key, details)
 		if metrics != nil {
+			switch {
+			case errors.Is(err, checkout.ErrInsufficientStock):
+				metrics.RecordInventoryReservation("rejected")
+			case errors.Is(err, checkout.ErrInventoryReservation):
+				metrics.RecordInventoryReservation("failed")
+			case err == nil && !replayed && order.HasTrackedInventoryReservation():
+				metrics.RecordInventoryReservation("reserved")
+			}
+		}
+		if metrics != nil {
 			if err != nil {
 				outcome := "failed"
 				if errors.Is(err, checkout.ErrEmptyCart) || errors.Is(err, checkout.ErrInvalidCheckout) || errors.Is(err, checkout.ErrInsufficientStock) || errors.Is(err, checkout.ErrIdempotencyConflict) || errors.Is(err, cart.ErrOutOfStock) {
