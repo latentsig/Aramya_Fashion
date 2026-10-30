@@ -291,7 +291,7 @@ func (r *OrderRepository) Update(ctx context.Context, id string, input OrderUpda
 		}
 	}
 	if input.Status == "cancelled" {
-		if _, err := tx.Exec(dbCtx, `UPDATE inventory_reservations SET status='released',resolved_at=now() WHERE status='active' AND order_item_id IN (SELECT id FROM order_items WHERE order_id=$1)`, id); err != nil {
+		if err := releaseActiveInventoryReservations(dbCtx, tx, id); err != nil {
 			return AdminOrderDetail{}, err
 		}
 	}
@@ -328,4 +328,54 @@ func (r *OrderRepository) Update(ctx context.Context, id string, input OrderUpda
 		return AdminOrderDetail{}, err
 	}
 	return r.Get(ctx, id)
+}
+
+func releaseActiveInventoryReservations(ctx context.Context, tx pgx.Tx, orderID string) error {
+	rows, err := tx.Query(ctx, `SELECT ir.order_item_id::text,ir.product_variant_id::text,ir.quantity
+		FROM inventory_reservations ir JOIN order_items oi ON oi.id=ir.order_item_id
+		WHERE oi.order_id=$1 AND ir.status='active' ORDER BY ir.product_variant_id FOR UPDATE OF ir`, orderID)
+	if err != nil {
+		return err
+	}
+	type reservation struct {
+		itemID, variantID string
+		quantity          int
+	}
+	reservations := make([]reservation, 0)
+	for rows.Next() {
+		var item reservation
+		if err := rows.Scan(&item.itemID, &item.variantID, &item.quantity); err != nil {
+			rows.Close()
+			return err
+		}
+		reservations = append(reservations, item)
+	}
+	if err := rows.Err(); err != nil {
+		rows.Close()
+		return err
+	}
+	rows.Close()
+	for _, item := range reservations {
+		var onHand, reserved int
+		err := tx.QueryRow(ctx, `SELECT on_hand,reserved FROM inventory WHERE product_variant_id=$1 FOR UPDATE`, item.variantID).Scan(&onHand, &reserved)
+		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+			return err
+		}
+		if err == nil {
+			if reserved < item.quantity {
+				return errors.New("inventory reservation ledger exceeds the reserved stock counter")
+			}
+			if _, err := tx.Exec(ctx, `UPDATE inventory SET reserved=reserved-$2,updated_at=now() WHERE product_variant_id=$1`, item.variantID, item.quantity); err != nil {
+				return err
+			}
+			if _, err := tx.Exec(ctx, `INSERT INTO inventory_movements(product_variant_id,movement_type,quantity_delta,quantity_after,reference_type,reference_id,note)
+				VALUES($1,'release',$2,$3,'order',$4,'Order cancelled')`, item.variantID, -item.quantity, onHand, orderID); err != nil {
+				return err
+			}
+		}
+		if _, err := tx.Exec(ctx, `UPDATE inventory_reservations SET status='released',resolved_at=now() WHERE order_item_id=$1 AND status='active'`, item.itemID); err != nil {
+			return err
+		}
+	}
+	return nil
 }

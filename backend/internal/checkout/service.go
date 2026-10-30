@@ -17,11 +17,14 @@ import (
 )
 
 var (
-	ErrEmptyCart           = errors.New("cart is empty")
-	ErrInvalidCheckout     = errors.New("checkout details are invalid")
-	ErrInsufficientStock   = errors.New("requested quantity is no longer available")
-	ErrIdempotencyConflict = errors.New("idempotency key was already used for different checkout details")
+	ErrEmptyCart               = errors.New("cart is empty")
+	ErrInvalidCheckout         = errors.New("checkout details are invalid")
+	ErrInsufficientStock       = errors.New("requested quantity is no longer available")
+	ErrIdempotencyConflict     = errors.New("idempotency key was already used for different checkout details")
+	ErrInvalidReservationBatch = errors.New("reservation cleanup batch size is invalid")
 )
+
+const ReservationTTL = 20 * time.Minute
 
 type Address struct {
 	RecipientName string `json:"recipientName"`
@@ -235,10 +238,29 @@ func (s *Service) CreateOrder(ctx context.Context, cartID, userID, guestEmail, g
 	}
 	for _, line := range lines {
 		lineTotal := line.UnitPricePaise * int64(line.Quantity)
-		_, err = tx.Exec(dbCtx, `INSERT INTO order_items(order_id,product_id,product_variant_id,product_name,product_sku,variant_description,quantity,unit_price_paise,tax_rate_basis_points,tax_paise,line_total_paise)
-		VALUES($1,$2,$3,$4,$5,$6,$7,$8,0,0,$9)`, order.ID, line.ProductID, line.VariantID, line.Name, line.ProductSKU, line.VariantSummary, line.Quantity, line.UnitPricePaise, lineTotal)
+		var orderItemID string
+		err = tx.QueryRow(dbCtx, `INSERT INTO order_items(order_id,product_id,product_variant_id,product_name,product_sku,variant_description,quantity,unit_price_paise,tax_rate_basis_points,tax_paise,line_total_paise)
+		VALUES($1,$2,$3,$4,$5,$6,$7,$8,0,0,$9) RETURNING id::text`, order.ID, line.ProductID, line.VariantID, line.Name, line.ProductSKU, line.VariantSummary, line.Quantity, line.UnitPricePaise, lineTotal).Scan(&orderItemID)
 		if err != nil {
 			return Order{}, false, err
+		}
+		if line.InventoryPolicy == "tracked" {
+			var onHand int
+			if err := tx.QueryRow(dbCtx, `UPDATE inventory SET reserved=reserved+$2,updated_at=now()
+				WHERE product_variant_id=$1 AND on_hand-reserved >= $2 RETURNING on_hand`, line.VariantID, line.Quantity).Scan(&onHand); err != nil {
+				if errors.Is(err, pgx.ErrNoRows) {
+					return Order{}, false, ErrInsufficientStock
+				}
+				return Order{}, false, err
+			}
+			if _, err := tx.Exec(dbCtx, `INSERT INTO inventory_reservations(order_item_id,product_variant_id,quantity,status,expires_at)
+				VALUES($1,$2,$3,'active',now()+($4 * interval '1 second'))`, orderItemID, line.VariantID, line.Quantity, int64(ReservationTTL.Seconds())); err != nil {
+				return Order{}, false, err
+			}
+			if _, err := tx.Exec(dbCtx, `INSERT INTO inventory_movements(product_variant_id,movement_type,quantity_delta,quantity_after,reference_type,reference_id,note)
+				VALUES($1,'reservation',$2,$3,'order',$4,'Checkout stock reservation')`, line.VariantID, line.Quantity, onHand, order.ID); err != nil {
+				return Order{}, false, err
+			}
 		}
 	}
 	if _, err = tx.Exec(dbCtx, `INSERT INTO order_status_events(order_id,from_status,to_status,reason) VALUES($1,NULL,'pending_payment','Customer submitted checkout details')`, order.ID); err != nil {
