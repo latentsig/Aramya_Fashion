@@ -140,7 +140,7 @@ This report tracks verified milestones and does not claim full e-commerce accept
 - Added pinned local Prometheus/Grafana Compose services, scrape config, provisioned datasource/dashboard, alert rules, ignored local token/password paths, and [monitoring runbook](monitoring-runbook.md).
 - `go test -count=1 ./...` passed, including authorization, bounded label, database readiness, and token validation checks. `go vet ./...` passed. Prometheus/Grafana YAML and dashboard JSON parsed; `docker compose ... config --quiet` passed; `git diff --check` passed.
 - The local Prometheus/Grafana containers were not started because the API scrape token and Grafana admin password are intentionally operator-provided local configuration. No external credentials were generated or written. Live scrape, dashboard rendering, and alert firing remain unverified.
-- Payment, webhook, R2, stock reservation, and slow-query metrics are not emitted because their corresponding instrumented operations are not implemented. Cloud alert delivery and GCP monitoring remain pending deployment access/configuration.
+- Payment, R2, stock reservation, and slow-query metrics are not emitted because their corresponding instrumented operations are not implemented. Cloud alert delivery and GCP monitoring remain pending deployment access/configuration.
 
 ## R2 media inventory — verified locally
 
@@ -160,7 +160,15 @@ This report tracks verified milestones and does not claim full e-commerce accept
 
 - Added optional server configuration that rejects partial credentials and live-mode key IDs, a timeout-bounded Razorpay REST client for order creation/payment retrieval, provider response checks, and constant-time checkout/webhook HMAC verification using their distinct secrets.
 - Isolated HTTP contract tests use a local test server; no provider account or payment result is simulated as a live success. `go test -count=1 ./...` and `go vet ./...` pass.
-- The public checkout still returns `paymentAvailable: false`. Payment attempt persistence, API order initiation from checkout, browser checkout UI, capture-state confirmation, webhook ingestion/deduplication, refunds and reconciliation remain unimplemented. No credentials are configured. See [payment workflow](payment-workflow.md).
+- The public checkout still returns `paymentAvailable: false` unless test credentials and final-pricing configuration are supplied. Payment attempt persistence, API order initiation from checkout, browser checkout UI, and capture-state confirmation were implemented in later milestones. Durable webhook ingestion is recorded below. Refund initiation and provider reconciliation remain unimplemented. No credentials are configured. See [payment workflow](payment-workflow.md).
+
+## Razorpay webhook inbox — locally verified; PostgreSQL integration guarded
+
+- Added `POST /api/v1/webhooks/razorpay` outside customer CSRF middleware, with a 1 MiB raw-body limit and HMAC validation before JSON parsing.
+- `payment_events` now acts as the durable inbox: event ID and raw-body SHA-256 uniqueness checks, duplicate acknowledgment, conflicting replay rejection, and atomic payment/order application.
+- Captured events apply the shared capture and inventory-reservation transaction. Authorized and failed events cannot downgrade captured attempts; unknown events are recorded as ignored, and unmatched signed orders are retained for review.
+- `go test -count=1 ./...` passes. `go vet ./internal/api ./internal/payments` passes. The new PostgreSQL replay/out-of-order integration test compiles and is skipped because this environment has no configured disposable local database. OpenAPI YAML parses (38 paths). Razorpay credentials are not configured, so no live provider event has been received.
+- Remaining in the payment area: real-account test configuration, reconciliation, refunds, and payment metrics. This does not establish end-to-end payment acceptance.
 
 ## Tracked checkout stock reservations — verified by unit/build checks; database integration guarded
 

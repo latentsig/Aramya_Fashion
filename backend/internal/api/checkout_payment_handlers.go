@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"errors"
+	"io"
 	"log/slog"
 	"net/http"
 
@@ -15,6 +16,37 @@ import (
 type CheckoutPaymentGateway interface {
 	Start(ctx context.Context, orderID, customerID, guestCartID, idempotencyKey string) (payments.CheckoutSession, error)
 	Verify(ctx context.Context, orderID, customerID, guestCartID, providerOrderID, paymentID, signature string) (payments.PaymentResult, error)
+	ProcessWebhook(ctx context.Context, eventID, signature string, raw []byte) (payments.WebhookResult, error)
+}
+
+func registerRazorpayWebhookRoute(router *gin.Engine, gateway CheckoutPaymentGateway, logger *slog.Logger) {
+	router.POST("/api/v1/webhooks/razorpay", func(c *gin.Context) {
+		eventID := c.GetHeader("x-razorpay-event-id")
+		signature := c.GetHeader("X-Razorpay-Signature")
+		if eventID == "" || signature == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"code": "invalid_webhook_headers", "message": "Webhook headers are required"}})
+			return
+		}
+		c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, 1<<20)
+		raw, err := io.ReadAll(c.Request.Body)
+		if err != nil {
+			c.JSON(http.StatusRequestEntityTooLarge, gin.H{"error": gin.H{"code": "webhook_too_large", "message": "Webhook payload exceeds the allowed size"}})
+			return
+		}
+		result, err := gateway.ProcessWebhook(c.Request.Context(), eventID, signature, raw)
+		switch {
+		case err == nil:
+			c.JSON(http.StatusOK, gin.H{"data": result})
+		case errors.Is(err, payments.ErrWebhookSignature):
+			c.JSON(http.StatusUnauthorized, gin.H{"error": gin.H{"code": "webhook_signature_invalid", "message": "Webhook signature is invalid"}})
+		case errors.Is(err, payments.ErrWebhookInvalid):
+			c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"code": "webhook_payload_invalid", "message": "Webhook payload is invalid"}})
+		case errors.Is(err, payments.ErrWebhookConflict):
+			c.JSON(http.StatusConflict, gin.H{"error": gin.H{"code": "webhook_event_conflict", "message": "Webhook event ID conflicts with a prior delivery"}})
+		default:
+			writeInternalError(c, logger, err)
+		}
+	})
 }
 
 func registerCheckoutPaymentRoutes(v1 *gin.RouterGroup, gateway CheckoutPaymentGateway, cartService *cart.Service, authService *auth.Service, logger *slog.Logger) {

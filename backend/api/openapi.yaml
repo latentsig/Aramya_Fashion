@@ -2,10 +2,47 @@ openapi: 3.1.0
 info:
   title: Aramya Fashion API
   version: 0.1.0
-  description: Database-backed catalog, customer session, persistent cart, provisional pending-order checkout, customer order history, and order detail APIs. Razorpay checkout and fulfillment payment integration remain disabled.
+  description: Database-backed catalog, customer session, persistent cart, provisional pending-order checkout, customer order history, and order detail APIs. Optional Razorpay test payment and signed webhook routes are enabled only when all test credentials and final-pricing configuration are present.
 servers:
   - url: http://localhost:18080
 paths:
+  /api/v1/webhooks/razorpay:
+    post:
+      summary: Receive a Razorpay payment webhook
+      description: Verifies X-Razorpay-Signature against the exact raw request body. Requires x-razorpay-event-id; identical replays are acknowledged, conflicting replays return 409.
+      operationId: receiveRazorpayWebhook
+      parameters:
+        - in: header
+          name: x-razorpay-event-id
+          required: true
+          schema:
+            type: string
+        - in: header
+          name: X-Razorpay-Signature
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [event]
+              properties:
+                event:
+                  type: string
+      responses:
+        '200':
+          description: Event recorded and processed or identical delivery acknowledged
+        '400':
+          description: Missing header or malformed webhook
+        '401':
+          description: Invalid webhook signature
+        '409':
+          description: Event ID reused with different payload
+        '500':
+          description: Durable processing failed; provider may retry
   /health:
     get:
       summary: Process health
